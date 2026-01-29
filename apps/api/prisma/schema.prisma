@@ -7,9 +7,112 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Minimal starter schema. Extend/replace with your real domain models.
 model Healthcheck {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
 }
 
+enum UserRole {
+  OWNER
+  RENTER
+  ADMIN
+}
+
+enum KYCStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  PAYMENT_CONFIRMED
+}
+
+enum PaymentMethod {
+  CASH
+  MPESA
+  BANK
+}
+
+model User {
+  id    String   @id @default(cuid())
+  name  String?
+  email String?  @unique
+  phone String?  @unique
+  role  UserRole
+
+  kyc KYC?
+
+  vehicles Vehicle[] @relation("OwnerVehicles")
+  bookings Booking[] @relation("RenterBookings")
+
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+  @@index([role])
+}
+
+model KYC {
+  id         String    @id @default(cuid())
+  userId     String    @unique
+  fullName   String
+  nationalId String
+  selfieUrl  String?
+  address    String?
+  status     KYCStatus @default(PENDING)
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Vehicle {
+  id           String   @id @default(cuid())
+  ownerId      String
+  title        String
+  category     String
+  dailyPrice   Int?
+  monthlyPrice Int?
+  location     String
+  images       String[]
+
+  owner    User      @relation("OwnerVehicles", fields: [ownerId], references: [id])
+  bookings Booking[]
+
+  createdAt DateTime @default(now())
+
+  @@index([ownerId])
+  @@index([category])
+  @@index([location])
+}
+
+model Booking {
+  id        String        @id @default(cuid())
+  renterId  String
+  vehicleId String
+  status    BookingStatus @default(PENDING)
+
+  renter  User     @relation("RenterBookings", fields: [renterId], references: [id])
+  vehicle Vehicle  @relation(fields: [vehicleId], references: [id])
+  payment Payment?
+
+  createdAt DateTime @default(now())
+
+  @@index([renterId])
+  @@index([vehicleId])
+  @@index([status])
+}
+
+model Payment {
+  id          String         @id @default(cuid())
+  bookingId   String         @unique
+  amount      Int?
+  method      PaymentMethod?
+  received    Boolean        @default(false)
+  confirmedAt DateTime?
+  driverToken String         @unique
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+}
