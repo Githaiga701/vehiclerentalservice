@@ -38,21 +38,42 @@ enum PaymentMethod {
 }
 
 model User {
-  id    String   @id @default(cuid())
-  name  String?
-  email String?  @unique
-  phone String?  @unique
-  role  UserRole
+  id       String   @id @default(cuid())
+  name     String?
+  email    String?  @unique
+  phone    String   @unique
+  role     UserRole
+  password String?
+  isActive Boolean  @default(true)
 
-  kyc KYC?
-
-  vehicles Vehicle[] @relation("OwnerVehicles")
-  bookings Booking[] @relation("RenterBookings")
+  kyc              KYC?
+  vehicles         Vehicle[]       @relation("OwnerVehicles")
+  bookings         Booking[]       @relation("RenterBookings")
+  givenRatings     Rating[]        @relation("RaterRatings")
+  receivedRatings  Rating[]        @relation("RatedUserRatings")
+  otps             OTP[]
+  trustScore       TrustScore?
+  auditLogs        AuditLog[]
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([phone])
   @@index([role])
+}
+
+model OTP {
+  id        String   @id @default(cuid())
+  userId    String
+  code      String
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([code])
 }
 
 model KYC {
@@ -72,36 +93,89 @@ model Vehicle {
   id           String   @id @default(cuid())
   ownerId      String
   title        String
+  description  String?
   category     String
   dailyPrice   Int?
   monthlyPrice Int?
   location     String
   images       String[]
+  seats        Int?
+  transmission String?
+  fuelType     String?
+  year         Int?
+  withDriver   Boolean  @default(false)
+  isAvailable  Boolean  @default(true)
 
   owner    User      @relation("OwnerVehicles", fields: [ownerId], references: [id])
   bookings Booking[]
+  driver   Driver?
+  ratings  Rating[]  @relation("VehicleRatings")
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([ownerId])
   @@index([category])
   @@index([location])
 }
 
-model Booking {
-  id        String        @id @default(cuid())
-  renterId  String
-  vehicleId String
-  status    BookingStatus @default(PENDING)
+model Driver {
+  id        String  @id @default(cuid())
+  vehicleId String  @unique
+  name      String
+  phone     String
+  licenseNo String?
 
-  renter  User     @relation("RenterBookings", fields: [renterId], references: [id])
-  vehicle Vehicle  @relation(fields: [vehicleId], references: [id])
-  payment Payment?
+  vehicle      Vehicle       @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  driverLinks  DriverLink[]
+  ratings      Rating[]      @relation("DriverRatings")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([phone])
+}
+
+model DriverLink {
+  id        String    @id @default(cuid())
+  driverId  String
+  bookingId String
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  driver  Driver  @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
+  @@index([token])
+  @@index([driverId])
+  @@index([bookingId])
+}
+
+model Booking {
+  id         String        @id @default(cuid())
+  renterId   String
+  vehicleId  String
+  ownerId    String
+  status     BookingStatus @default(PENDING)
+  startDate  DateTime
+  endDate    DateTime
+  totalPrice Int
+
+  renter       User         @relation("RenterBookings", fields: [renterId], references: [id])
+  vehicle      Vehicle      @relation(fields: [vehicleId], references: [id])
+  payment      Payment?
+  driverLinks  DriverLink[]
+  ratings      Rating[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([renterId])
   @@index([vehicleId])
+  @@index([ownerId])
   @@index([status])
 }
 
@@ -112,7 +186,90 @@ model Payment {
   method      PaymentMethod?
   received    Boolean        @default(false)
   confirmedAt DateTime?
-  driverToken String         @unique
+  confirmedBy String?
 
-  booking Booking @relation(fields: [bookingId], references: [id])
+  booking   Booking    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  auditLogs AuditLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum RatingType {
+  VEHICLE
+  OWNER
+  DRIVER
+}
+
+model Rating {
+  id         String     @id @default(cuid())
+  bookingId  String
+  raterId    String
+  ratedType  RatingType
+  vehicleId  String?
+  driverId   String?
+  ratedUserId String?
+  score      Int
+  comment    String?
+
+  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  rater      User     @relation("RaterRatings", fields: [raterId], references: [id])
+  vehicle    Vehicle? @relation("VehicleRatings", fields: [vehicleId], references: [id])
+  driver     Driver?  @relation("DriverRatings", fields: [driverId], references: [id])
+  ratedUser  User?    @relation("RatedUserRatings", fields: [ratedUserId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([bookingId])
+  @@index([raterId])
+  @@index([vehicleId])
+  @@index([driverId])
+  @@index([ratedUserId])
+}
+
+model TrustScore {
+  id                  String  @id @default(cuid())
+  userId              String  @unique
+  score               Float   @default(0)
+  kycCompleted        Boolean @default(false)
+  completionRate      Float   @default(0)
+  paymentAccuracy     Float   @default(0)
+  averageRating       Float   @default(0)
+  disputeCount        Int     @default(0)
+  adminOverride       Float?
+  adminOverrideReason String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+enum AuditAction {
+  KYC_APPROVED
+  KYC_REJECTED
+  PAYMENT_CONFIRMED
+  PAYMENT_UPDATED
+  USER_FLAGGED
+  TRUST_SCORE_OVERRIDE
+  BOOKING_CANCELLED
+}
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  action      AuditAction
+  performedBy String
+  targetId    String
+  targetType  String
+  paymentId   String?
+  details     Json?
+
+  user    User     @relation(fields: [performedBy], references: [id])
+  payment Payment? @relation(fields: [paymentId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([performedBy])
+  @@index([targetId])
+  @@index([action])
 }
