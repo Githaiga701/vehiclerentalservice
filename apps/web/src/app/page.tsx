@@ -271,7 +271,7 @@ export default function Home() {
             Get on the road in three simple steps
           </p>
           
-          <div className="grid md:grid-cols-3 gap-12 relative">
+          <div className="grid md:grid-cols-3 gap-12 relative mb-12">
             {/* Connection lines for desktop */}
             <div className="hidden md:block absolute top-16 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-primary via-accent to-secondary" />
             
@@ -313,6 +313,16 @@ export default function Home() {
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Learn More Button */}
+          <div className="mt-12">
+            <Button size="lg" variant="outline" className="group" asChild>
+              <a href="/how-it-works">
+                Learn More About Our Process
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </a>
+            </Button>
           </div>
         </div>
       </section>
