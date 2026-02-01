@@ -18,6 +18,8 @@ import {
   MessageCircle,
   Send
 } from "lucide-react";
+import { apiClient } from "@/lib/api-client";
+import LocationPicker from "@/components/LocationPicker";
 
 export default function ContactPage() {
   const [formState, setFormState] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -28,16 +30,24 @@ export default function ContactPage() {
     setFormState("loading");
     setErrorMessage("");
 
-    // Simulate form submission
-    setTimeout(() => {
-      // Randomly succeed or fail for demo
-      if (Math.random() > 0.2) {
-        setFormState("success");
-      } else {
-        setFormState("error");
-        setErrorMessage("Something went wrong. Please try again.");
-      }
-    }, 1500);
+    const formData = new FormData(e.currentTarget);
+    const contactData = {
+      name: formData.get("name") as string,
+      email: formData.get("email") as string,
+      phone: formData.get("phone") as string,
+      subject: formData.get("subject") as string,
+      message: formData.get("message") as string,
+    };
+
+    try {
+      await apiClient.submitContactForm(contactData);
+      setFormState("success");
+      // Reset form
+      e.currentTarget.reset();
+    } catch (error: any) {
+      setFormState("error");
+      setErrorMessage(error.message || "Failed to send message. Please try again.");
+    }
   };
 
   return (

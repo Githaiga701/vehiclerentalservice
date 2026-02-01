@@ -6,14 +6,37 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Star, Users, Gauge, MapPin, Fuel, Calendar, ArrowRight } from "lucide-react";
 
 interface VehicleCardProps {
-  id: string;
-  name: string;
-  image: string;
-  pricePerDay: number;
-  seats: number;
-  transmission: "Automatic" | "Manual";
-  fuelType: string;
-  year: number;
+  vehicle?: {
+    id: string;
+    name?: string;
+    title?: string;
+    image?: string;
+    images?: string;
+    pricePerDay?: number;
+    dailyPrice?: number;
+    seats: number;
+    transmission: "Automatic" | "Manual";
+    fuelType: string;
+    year: number;
+    rating?: number;
+    isAvailable?: boolean;
+    location?: string;
+    category?: string;
+    features?: string[];
+    description?: string;
+  };
+  // Legacy props for backward compatibility
+  id?: string;
+  name?: string;
+  title?: string;
+  image?: string;
+  images?: string;
+  pricePerDay?: number;
+  dailyPrice?: number;
+  seats?: number;
+  transmission?: "Automatic" | "Manual";
+  fuelType?: string;
+  year?: number;
   rating?: number;
   isAvailable?: boolean;
   location?: string;
@@ -22,22 +45,35 @@ interface VehicleCardProps {
   features?: string[];
 }
 
-export function VehicleCard({
-  id,
-  name,
-  image,
-  pricePerDay,
-  seats,
-  transmission,
-  fuelType,
-  year,
-  rating = 4.5,
-  isAvailable = true,
-  location = "Nairobi",
-  priority = false,
-  category = "SUV",
-  features = [],
-}: VehicleCardProps) {
+export function VehicleCard(props: VehicleCardProps) {
+  // Support both vehicle prop and individual props for backward compatibility
+  const vehicle = props.vehicle || props;
+  
+  const {
+    id,
+    name: vehicleName,
+    title,
+    image: vehicleImage,
+    images,
+    pricePerDay: vehiclePricePerDay,
+    dailyPrice,
+    seats,
+    transmission,
+    fuelType,
+    year,
+    rating = 4.5,
+    isAvailable = true,
+    location = "Nairobi",
+    category = "SUV",
+    features = [],
+  } = vehicle;
+
+  // Handle different property names from API vs mock data
+  const name = vehicleName || title || "Unknown Vehicle";
+  const image = vehicleImage || (typeof images === 'string' ? JSON.parse(images)?.[0] : images?.[0]) || "/placeholder-car.jpg";
+  const pricePerDay = vehiclePricePerDay || dailyPrice || 0;
+
+  const priority = props.priority || false;
   return (
     <Card className="group overflow-hidden transition-all hover:shadow-2xl hover:-translate-y-2 duration-300 border-none shadow-lg">
       {/* Image Section */}

@@ -20,11 +20,11 @@ let PrismaService = PrismaService_1 = class PrismaService extends client_1.Prism
             return;
         }
         await this.$connect();
+        this.logger.log('Connected to database');
     }
-    async enableShutdownHooks(app) {
-        this.$on('beforeExit', async () => {
-            await app.close();
-        });
+    async onModuleDestroy() {
+        await this.$disconnect();
+        this.logger.log('Disconnected from database');
     }
 };
 exports.PrismaService = PrismaService;

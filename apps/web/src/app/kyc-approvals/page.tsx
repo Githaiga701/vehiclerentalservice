@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,46 +10,15 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, XCircle, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-// Mock pending KYC submissions (replace with real fetch later)
-const mockPendingKyc = [
-  {
-    userId: "u1",
-    name: "Alice Wanjiku",
-    phone: "+254712345678",
-    nationalId: "12345678",
-    address: "Westlands, Nairobi",
-    status: "pending",
-    submittedAt: "2026-01-25",
-    documents: ["id-front.jpg", "id-back.jpg", "selfie.jpg"],
-  },
-  {
-    userId: "u2",
-    name: "Brian Otieno",
-    phone: "+254723456789",
-    nationalId: "23456789",
-    address: "Kilimani, Nairobi",
-    status: "pending",
-    submittedAt: "2026-01-26",
-    documents: ["id-front.jpg", "id-back.jpg", "selfie.jpg"],
-  },
-  {
-    userId: "u3",
-    name: "Grace Muthoni",
-    phone: "+254734567890",
-    nationalId: "34567890",
-    address: "Mombasa CBD",
-    status: "pending",
-    submittedAt: "2026-01-27",
-    documents: ["id-front.jpg", "id-back.jpg", "selfie.jpg"],
-  },
-];
+import { apiClient } from "@/lib/api-client";
+import { toast } from "sonner";
 
 export default function KycApprovalsPage() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, isAdmin } = useAuth();
   const router = useRouter();
-  const [kycList, setKycList] = useState(mockPendingKyc);
+  const [kycList, setKycList] = useState<any[]>([]);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -57,42 +26,74 @@ export default function KycApprovalsPage() {
     }
   }, [isAuthenticated, isLoading, router]);
 
-  const handleApprove = (userId: string) => {
+  // Fetch pending KYC submissions
+  useEffect(() => {
+    const fetchPendingKyc = async () => {
+      if (!isAdmin) return;
+      
+      setIsLoadingData(true);
+      try {
+        const pendingKyc = await apiClient.getPendingKyc();
+        setKycList(pendingKyc);
+      } catch (error: any) {
+        console.error("Failed to fetch pending KYC:", error);
+        toast.error("Failed to load pending KYC submissions");
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    if (isAdmin) {
+      fetchPendingKyc();
+    }
+  }, [isAdmin]);
+
+  const handleApprove = async (userId: string) => {
     setProcessingId(userId);
-    // Simulate API delay
-    setTimeout(() => {
-      setKycList((prev) =>
-        prev.map((item) =>
-          item.userId === userId ? { ...item, status: "approved" } : item
-        )
-      );
+    try {
+      const result = await apiClient.approveKyc(userId);
+      
+      // Remove from list or update status
+      setKycList(prev => prev.filter(item => item.userId !== userId));
+      
+      toast.success(`KYC approved for ${result.user.name}`);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to approve KYC");
+    } finally {
       setProcessingId(null);
-      alert(`KYC for ${userId} approved!`);
-    }, 1200);
+    }
   };
 
-  const handleReject = (userId: string) => {
+  const handleReject = async (userId: string) => {
     setProcessingId(userId);
-    setTimeout(() => {
-      setKycList((prev) =>
-        prev.map((item) =>
-          item.userId === userId ? { ...item, status: "rejected" } : item
-        )
-      );
+    try {
+      const result = await apiClient.rejectKyc(userId);
+      
+      // Remove from list or update status
+      setKycList(prev => prev.filter(item => item.userId !== userId));
+      
+      toast.success(`KYC rejected for ${result.user.name}`);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to reject KYC");
+    } finally {
       setProcessingId(null);
-      alert(`KYC for ${userId} rejected!`);
-    }, 1200);
+    }
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">
+            {isLoading ? "Loading..." : "Loading KYC submissions..."}
+          </p>
+        </div>
       </div>
     );
   }
 
-  if (!user?.isAdmin) {
+  if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral-50">
         <Card className="max-w-md text-center p-8">
@@ -160,13 +161,13 @@ export default function KycApprovalsPage() {
 
                     <Badge
                       variant={
-                        submission.status === "approved" ? "default" :
-                        submission.status === "rejected" ? "destructive" : "secondary"
+                        submission.status === "APPROVED" ? "default" :
+                        submission.status === "REJECTED" ? "destructive" : "secondary"
                       }
                       className="text-sm px-4 py-1"
                     >
-                      {submission.status === "pending" ? "Pending Review" :
-                       submission.status === "approved" ? "Approved" : "Rejected"}
+                      {submission.status === "PENDING" ? "Pending Review" :
+                       submission.status === "APPROVED" ? "Approved" : "Rejected"}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -203,7 +204,7 @@ export default function KycApprovalsPage() {
                     </div>
                   </div>
 
-                  {submission.status === "pending" && (
+                  {submission.status === "PENDING" && (
                     <div className="flex flex-col sm:flex-row gap-4 mt-6">
                       <Button
                         className="flex-1 bg-green-600 hover:bg-green-700"

@@ -13,6 +13,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useEffect } from "react";
+import { apiClient } from "@/lib/api-client";
+import LocationPicker from "@/components/LocationPicker";
 
 // Zod schema for KYC
 const kycSchema = z.object({
@@ -28,9 +30,15 @@ type KycForm = z.infer<typeof kycSchema>;
 
 export default function KycPage() {
   const router = useRouter();
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, updateUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState<{
+    lat: number;
+    lng: number;
+    address: string;
+    city: string;
+  } | null>(null);
 
   const form = useForm<KycForm>({
     resolver: zodResolver(kycSchema),
@@ -46,17 +54,26 @@ export default function KycPage() {
     setIsSubmitting(true);
 
     try {
-      // In real app: upload files to Supabase/Firebase Storage
-      // Then save profile to DB with KYC status: "pending"
-      console.log("KYC data:", data);
+      const formData = new FormData();
+      formData.append("fullName", data.fullName);
+      formData.append("nationalId", data.nationalId);
+      formData.append("address", selectedLocation?.address || data.address);
+      formData.append("city", selectedLocation?.city || "");
+      formData.append("latitude", selectedLocation?.lat.toString() || "");
+      formData.append("longitude", selectedLocation?.lng.toString() || "");
+      formData.append("idFront", data.idFront);
+      formData.append("idBack", data.idBack);
+      formData.append("selfie", data.selfie);
 
-      // Simulate success
-      setTimeout(() => {
-        alert("KYC submitted! Waiting for approval (stub)");
-        router.push("/"); // or /vehicles
-      }, 1500);
-    } catch (err) {
-      setSubmitError("Failed to submit KYC. Try again.");
+      await apiClient.submitKyc(formData);
+      
+      // Update user KYC status in context
+      updateUser({ kycStatus: "PENDING" });
+      
+      // Redirect to success page
+      router.push("/");
+    } catch (error: any) {
+      setSubmitError(error.message || "Failed to submit KYC. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -118,7 +135,31 @@ export default function KycPage() {
                   <FormItem>
                     <FormLabel>Current Address / Location</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="e.g. Westlands, Nairobi" />
+                      <div className="space-y-4">
+                        <Input 
+                          {...field} 
+                          placeholder="e.g. Westlands, Nairobi"
+                          value={selectedLocation?.address || field.value}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            if (!selectedLocation) {
+                              // If no location selected via map, use text input
+                            }
+                          }}
+                        />
+                        <div className="border rounded-lg p-4">
+                          <Label className="text-sm font-medium mb-2 block">
+                            Or pick your location on the map:
+                          </Label>
+                          <LocationPicker
+                            onLocationSelect={(location) => {
+                              setSelectedLocation(location);
+                              field.onChange(location.address);
+                            }}
+                            initialLocation={selectedLocation || undefined}
+                          />
+                        </div>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

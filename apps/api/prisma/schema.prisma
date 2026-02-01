@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model Healthcheck {
@@ -81,8 +81,13 @@ model KYC {
   userId     String    @unique
   fullName   String
   nationalId String
-  selfieUrl  String?
   address    String?
+  city       String?
+  latitude   Float?
+  longitude  Float?
+  idFrontUrl String?
+  idBackUrl  String?
+  selfieUrl  String?
   status     KYCStatus @default(PENDING)
   createdAt  DateTime  @default(now())
 
@@ -98,7 +103,7 @@ model Vehicle {
   dailyPrice   Int?
   monthlyPrice Int?
   location     String
-  images       String[]
+  images       String?  // Changed from String[] to String - will store JSON
   seats        Int?
   transmission String?
   fuelType     String?
@@ -163,6 +168,19 @@ model Booking {
   startDate  DateTime
   endDate    DateTime
   totalPrice Int
+  
+  // Driver and timing information
+  pickupTime      String?
+  returnTime      String?
+  driverName      String?
+  driverPhone     String?
+  driverLicense   String?
+  specialRequests String?
+  
+  // Delivery information
+  needsDelivery    Boolean @default(false)
+  pickupLocation   String? // JSON string
+  dropoffLocation  String? // JSON string
 
   renter       User         @relation("RenterBookings", fields: [renterId], references: [id])
   vehicle      Vehicle      @relation(fields: [vehicleId], references: [id])

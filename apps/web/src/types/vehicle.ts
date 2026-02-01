@@ -186,20 +186,77 @@ export interface VehicleOwner {
 }
 
 /**
- * Simplified vehicle card data (for listings)
+ * API Vehicle response (from backend)
+ */
+export interface ApiVehicle {
+  /** Unique identifier for the vehicle */
+  id: string;
+  
+  /** Vehicle title (from API) */
+  title: string;
+  
+  /** Vehicle description */
+  description?: string;
+  
+  /** Vehicle category */
+  category: string;
+  
+  /** Daily price in KES (from API) */
+  dailyPrice?: number;
+  
+  /** Monthly price in KES (from API) */
+  monthlyPrice?: number;
+  
+  /** Vehicle location */
+  location: string;
+  
+  /** Vehicle images (JSON string from API) */
+  images?: string;
+  
+  /** Number of seats */
+  seats?: number;
+  
+  /** Transmission type */
+  transmission?: string;
+  
+  /** Fuel type */
+  fuelType?: string;
+  
+  /** Manufacturing year */
+  year?: number;
+  
+  /** Is vehicle available */
+  isAvailable?: boolean;
+  
+  /** Vehicle owner ID */
+  ownerId: string;
+  
+  /** Created at timestamp */
+  createdAt?: string;
+  
+  /** Updated at timestamp */
+  updatedAt?: string;
+}
+
+/**
+ * Simplified vehicle card data (for listings) - supports both API and mock data
  */
 export interface VehicleCardData {
   id: string;
-  name: string;
-  image: string;
-  pricePerDay: number;
+  name?: string;
+  title?: string;
+  image?: string;
+  images?: string;
+  pricePerDay?: number;
+  dailyPrice?: number;
   seats: number;
   transmission: Transmission;
   fuelType: string;
   year: number;
-  rating: number;
-  isAvailable: boolean;
+  rating?: number;
+  isAvailable?: boolean;
   location: string;
+  category?: string;
 }
 
 /**

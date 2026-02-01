@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsNumber, IsOptional, IsBoolean, IsArray, Min } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, IsOptional, IsBoolean, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateVehicleDto {
@@ -31,9 +31,8 @@ export class CreateVehicleDto {
   location!: string;
 
   @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  images?: string[];
+  @IsString()
+  images?: string;
 
   @IsOptional()
   @IsNumber()
@@ -88,8 +87,8 @@ export class UpdateVehicleDto {
   location?: string;
 
   @IsOptional()
-  @IsArray()
-  images?: string[];
+  @IsString()
+  images?: string;
 
   @IsOptional()
   @IsNumber()

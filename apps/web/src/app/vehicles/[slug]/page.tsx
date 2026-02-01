@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, use } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Carousel,
   CarouselContent,
@@ -15,11 +17,15 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { format } from "date-fns";
-import { CalendarIcon, Users, Gauge, Fuel, DollarSign, Star } from "lucide-react";
+import { CalendarIcon, Users, Gauge, Fuel, DollarSign, Star, MapPin, Phone, Mail } from "lucide-react";
 import { VehicleCard } from "@/components/VehicleCard";
+import EnhancedBookingForm from "@/components/EnhancedBookingForm";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth-context";
+import { apiClient } from "@/lib/api-client";
+import { toast } from "sonner";
 
-// Mock data – in a real app this would come from params.id + API/database
+// Mock data – in a real app this would come from params.slug + API/database
 const vehicleData = {
   id: "1",
   name: "Toyota Fortuner 2023",
@@ -48,6 +54,13 @@ const vehicleData = {
     "Cruise control",
     "Parking sensors",
   ],
+  owner: {
+    name: "Mary Wanjiku",
+    phone: "+254723456789",
+    email: "mary@example.com",
+    rating: 4.9,
+    vehiclesCount: 3,
+  },
 };
 
 const similarVehicles = [
@@ -62,6 +75,9 @@ const similarVehicles = [
     year: 2024,
     rating: 4.9,
     location: "Nairobi",
+    category: "SUV",
+    features: ["4WD", "Leather Seats", "Sunroof", "GPS Navigation"],
+    description: "Premium SUV with luxury features.",
   },
   {
     id: "2",
@@ -74,24 +90,77 @@ const similarVehicles = [
     year: 2022,
     rating: 4.6,
     location: "Mombasa",
-  },
-  {
-    id: "3",
-    name: "Subaru Forester 2021",
-    image: "https://images.unsplash.com/photo-1687048988997-ec57f83ea3bd?auto=format&fit=crop&q=80&w=800",
-    pricePerDay: 5500,
-    seats: 5,
-    transmission: "Manual" as const,
-    fuelType: "Petrol",
-    year: 2021,
-    rating: 4.7,
-    location: "Nairobi",
+    category: "SUV",
+    features: ["Bluetooth", "Backup Camera", "Climate Control"],
+    description: "Reliable crossover SUV ideal for city driving.",
   },
 ];
 
-export default function VehicleDetailPage({ params }: { params: { id: string } }) {
+export default function VehicleDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const router = useRouter();
+  const { isAuthenticated, requiresKyc } = useAuth();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const vehicle = vehicleData; // Later: fetch based on params.id
+  const [showBookingForm, setShowBookingForm] = useState(false);
+  const [vehicle, setVehicle] = useState(vehicleData);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Unwrap the params Promise
+  const resolvedParams = use(params);
+
+  // Fetch vehicle data based on slug
+  useEffect(() => {
+    const fetchVehicle = async () => {
+      setIsLoading(true);
+      try {
+        // In a real app, you'd fetch by slug/id
+        // const vehicleData = await apiClient.getVehicle(resolvedParams.slug);
+        // setVehicle(vehicleData);
+        
+        // For now, using mock data
+        setVehicle(vehicleData);
+      } catch (error) {
+        console.error("Failed to fetch vehicle:", error);
+        toast.error("Failed to load vehicle details");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchVehicle();
+  }, [resolvedParams.slug]);
+
+  const handleBookNow = () => {
+    if (!isAuthenticated) {
+      toast.error("Please login to book a vehicle");
+      router.push("/login");
+      return;
+    }
+
+    if (requiresKyc) {
+      toast.error("Please complete KYC verification to book vehicles");
+      router.push("/kyc");
+      return;
+    }
+
+    setShowBookingForm(true);
+  };
+
+  const handleBookingSuccess = () => {
+    setShowBookingForm(false);
+    toast.success("Booking request submitted successfully!");
+    router.push("/booking");
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading vehicle details...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-neutral-50 pb-16">
@@ -178,6 +247,38 @@ export default function VehicleDetailPage({ params }: { params: { id: string } }
                 ))}
               </div>
             </div>
+
+            {/* Owner Information */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border">
+              <h3 className="text-xl font-semibold mb-4">Vehicle Owner</h3>
+              <div className="flex items-start space-x-4">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                  <span className="text-2xl font-bold text-primary">
+                    {vehicle.owner.name.charAt(0)}
+                  </span>
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-lg">{vehicle.owner.name}</h4>
+                  <div className="flex items-center space-x-1 mb-2">
+                    <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                    <span className="text-sm font-medium">{vehicle.owner.rating}</span>
+                    <span className="text-sm text-gray-500">
+                      • {vehicle.owner.vehiclesCount} vehicles
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-4 text-sm text-gray-600">
+                    <div className="flex items-center space-x-1">
+                      <Phone className="w-4 h-4" />
+                      <span>{vehicle.owner.phone}</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Mail className="w-4 h-4" />
+                      <span>{vehicle.owner.email}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Right column - Sticky booking card */}
@@ -216,6 +317,12 @@ export default function VehicleDetailPage({ params }: { params: { id: string } }
                 </div>
               </div>
 
+              {/* Location */}
+              <div className="flex items-center gap-2 mb-6 text-sm text-gray-600">
+                <MapPin className="h-4 w-4" />
+                <span>{vehicle.location}</span>
+              </div>
+
               {/* Simple date picker demo */}
               <div className="mb-6">
                 <Label className="mb-2 block">Pickup Date</Label>
@@ -238,12 +345,16 @@ export default function VehicleDetailPage({ params }: { params: { id: string } }
                       selected={selectedDate}
                       onSelect={setSelectedDate}
                       initialFocus
+                      disabled={(date) => date < new Date()}
                     />
                   </PopoverContent>
                 </Popover>
               </div>
 
-              <Button className="w-full bg-accent hover:bg-accent/90 text-lg py-6 mb-4">
+              <Button 
+                onClick={handleBookNow}
+                className="w-full bg-accent hover:bg-accent/90 text-lg py-6 mb-4"
+              >
                 Book Now
               </Button>
 
@@ -259,11 +370,27 @@ export default function VehicleDetailPage({ params }: { params: { id: string } }
           <h2 className="text-2xl font-bold mb-8">Similar Vehicles</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {similarVehicles.map((v) => (
-              <VehicleCard key={v.id} {...v} />
+              <VehicleCard key={v.id} vehicle={v} />
             ))}
           </div>
         </section>
       </div>
+
+      {/* Booking Form Dialog */}
+      <Dialog open={showBookingForm} onOpenChange={setShowBookingForm}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Book {vehicle.name}</DialogTitle>
+          </DialogHeader>
+          <EnhancedBookingForm
+            vehicleId={vehicle.id}
+            vehicleName={vehicle.name}
+            dailyPrice={vehicle.pricePerDay}
+            onSuccess={handleBookingSuccess}
+            onCancel={() => setShowBookingForm(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

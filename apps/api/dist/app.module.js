@@ -11,12 +11,28 @@ const common_1 = require("@nestjs/common");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 const database_module_1 = require("./database/database.module");
+const auth_module_1 = require("./auth/auth.module");
+const vehicles_module_1 = require("./vehicles/vehicles.module");
+const contact_module_1 = require("./contact/contact.module");
+const kyc_module_1 = require("./kyc/kyc.module");
+const bookings_module_1 = require("./bookings/bookings.module");
+const config_1 = require("@nestjs/config");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [database_module_1.DatabaseModule],
+        imports: [
+            database_module_1.DatabaseModule,
+            config_1.ConfigModule.forRoot({
+                isGlobal: true,
+            }),
+            auth_module_1.AuthModule,
+            vehicles_module_1.VehiclesModule,
+            contact_module_1.ContactModule,
+            kyc_module_1.KycModule,
+            bookings_module_1.BookingsModule,
+        ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService]
     })

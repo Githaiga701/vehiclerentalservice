@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { VehicleCard } from "@/components/VehicleCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,9 +17,12 @@ import {
   SlidersHorizontal, 
   Car,
   Filter,
-  X
+  X,
+  Loader2
 } from "lucide-react";
 import { MOCK_VEHICLES, VEHICLE_CATEGORIES } from "@/lib/constants";
+import { apiClient } from "@/lib/api-client";
+import { toast } from "sonner";
 
 export default function VehiclesPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -27,25 +30,71 @@ export default function VehiclesPage() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [transmissionFilter, setTransmissionFilter] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [vehicles, setVehicles] = useState(MOCK_VEHICLES);
+  const [isLoading, setIsLoading] = useState(false);
+  const [totalVehicles, setTotalVehicles] = useState(MOCK_VEHICLES.length);
 
-  // Client-side filtering & sorting
-  const filteredVehicles = MOCK_VEHICLES
+  // Fetch vehicles from API
+  const fetchVehicles = async () => {
+    setIsLoading(true);
+    try {
+      const params: any = {
+        page: 1,
+        limit: 50,
+      };
+
+      if (categoryFilter !== "all") {
+        params.category = categoryFilter;
+      }
+      if (transmissionFilter !== "all") {
+        params.transmission = transmissionFilter;
+      }
+      if (searchQuery.trim()) {
+        // For search, we'll filter client-side for now
+        // In a real app, you'd send search query to backend
+      }
+
+      const response = await apiClient.getVehicles(params);
+      setVehicles(response.data);
+      setTotalVehicles(response.meta.total);
+    } catch (error) {
+      console.error("Failed to fetch vehicles:", error);
+      // Fall back to mock data
+      toast.error("Failed to load vehicles. Showing demo data.");
+      setVehicles(MOCK_VEHICLES);
+      setTotalVehicles(MOCK_VEHICLES.length);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch vehicles on component mount and when filters change
+  useEffect(() => {
+    fetchVehicles();
+  }, [categoryFilter, transmissionFilter]);
+
+  // Client-side filtering & sorting for search and sort
+  const filteredVehicles = vehicles
     .filter((vehicle) => {
+      const vehicleName = vehicle.name || vehicle.title || "";
+      const vehicleLocation = vehicle.location || "";
+      const vehicleCategory = vehicle.category || "";
+      
       const matchesSearch =
-        vehicle.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        vehicle.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        vehicle.category.toLowerCase().includes(searchQuery.toLowerCase());
+        vehicleName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        vehicleLocation.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        vehicleCategory.toLowerCase().includes(searchQuery.toLowerCase());
       
-      const matchesCategory = categoryFilter === "all" || vehicle.category === categoryFilter;
-      const matchesTransmission = transmissionFilter === "all" || vehicle.transmission === transmissionFilter;
-      
-      return matchesSearch && matchesCategory && matchesTransmission;
+      return matchesSearch;
     })
     .sort((a, b) => {
-      if (sortBy === "price-low") return a.pricePerDay - b.pricePerDay;
-      if (sortBy === "price-high") return b.pricePerDay - a.pricePerDay;
-      if (sortBy === "newest") return b.year - a.year;
-      if (sortBy === "rating") return b.rating - a.rating;
+      const priceA = a.pricePerDay || a.dailyPrice || 0;
+      const priceB = b.pricePerDay || b.dailyPrice || 0;
+      
+      if (sortBy === "price-low") return priceA - priceB;
+      if (sortBy === "price-high") return priceB - priceA;
+      if (sortBy === "newest") return (b.year || 0) - (a.year || 0);
+      if (sortBy === "rating") return (b.rating || 0) - (a.rating || 0);
       return 0;
     });
 
@@ -67,7 +116,7 @@ export default function VehiclesPage() {
           <div className="max-w-3xl">
             <Badge className="mb-4 bg-white/20 text-white hover:bg-white/30 border-white/30">
               <Car className="w-3 h-3 mr-1" />
-              {MOCK_VEHICLES.length} Vehicles Available
+              {isLoading ? "Loading..." : `${totalVehicles} Vehicles Available`}
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold mb-4">
               Find Your Perfect Vehicle
@@ -151,11 +200,11 @@ export default function VehiclesPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
             <h2 className="text-2xl font-bold">
-              {filteredVehicles.length} {filteredVehicles.length === 1 ? 'Vehicle' : 'Vehicles'} Found
+              {isLoading ? "Loading..." : `${filteredVehicles.length} ${filteredVehicles.length === 1 ? 'Vehicle' : 'Vehicles'} Found`}
             </h2>
-            {hasActiveFilters && (
+            {hasActiveFilters && !isLoading && (
               <p className="text-muted-foreground mt-1">
-                Showing filtered results
+                Showing filtered results from {totalVehicles} total vehicles
               </p>
             )}
           </div>
@@ -177,7 +226,14 @@ export default function VehiclesPage() {
 
         {/* Vehicles Grid */}
         <div className="w-full">
-          {filteredVehicles.length === 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
+                <p className="text-gray-600 text-lg">Loading vehicles...</p>
+              </div>
+            </div>
+          ) : filteredVehicles.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-2xl shadow-sm">
               <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-6">
                 <Car className="w-10 h-10 text-muted-foreground" />
