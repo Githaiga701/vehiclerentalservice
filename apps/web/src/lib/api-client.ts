@@ -41,6 +41,19 @@ class ApiClient {
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     
+    // Check if we're offline
+    if (typeof window !== 'undefined' && !navigator.onLine) {
+      // Try to get cached data for GET requests
+      if (!options.method || options.method === 'GET') {
+        const cachedData = this.getCachedData(endpoint);
+        if (cachedData) {
+          return cachedData;
+        }
+      }
+      
+      throw new Error('You are offline. Please check your internet connection.');
+    }
+    
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
@@ -65,12 +78,19 @@ class ApiClient {
             };
             const retryResponse = await fetch(url, config);
             if (retryResponse.ok) {
-              return retryResponse.json();
+              const data = retryResponse.json();
+              // Cache successful GET requests
+              if (!options.method || options.method === 'GET') {
+                this.setCachedData(endpoint, data);
+              }
+              return data;
             }
           }
           // If refresh failed, clear tokens and redirect to login
           this.clearToken();
-          window.location.href = '/login';
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login';
+          }
           throw new Error('Authentication failed');
         }
         
@@ -78,10 +98,62 @@ class ApiClient {
         throw new Error(errorData.message || `HTTP ${response.status}`);
       }
 
-      return response.json();
+      const data = await response.json();
+      
+      // Cache successful GET requests
+      if (!options.method || options.method === 'GET') {
+        this.setCachedData(endpoint, data);
+      }
+      
+      return data;
     } catch (error) {
       console.error('API request failed:', error);
+      
+      // If network error and it's a GET request, try cache
+      if (!options.method || options.method === 'GET') {
+        const cachedData = this.getCachedData(endpoint);
+        if (cachedData) {
+          toast.info('Showing cached data (offline mode)');
+          return cachedData;
+        }
+      }
+      
       throw error;
+    }
+  }
+
+  private getCachedData(endpoint: string): any {
+    if (typeof window === 'undefined') return null;
+    
+    try {
+      const cached = localStorage.getItem(`cache_${endpoint}`);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        // Cache expires after 1 hour
+        if (Date.now() - timestamp < 60 * 60 * 1000) {
+          return data;
+        }
+        // Remove expired cache
+        localStorage.removeItem(`cache_${endpoint}`);
+      }
+    } catch (error) {
+      console.error('Error reading cache:', error);
+    }
+    
+    return null;
+  }
+
+  private setCachedData(endpoint: string, data: any): void {
+    if (typeof window === 'undefined') return;
+    
+    try {
+      const cacheData = {
+        data,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem(`cache_${endpoint}`, JSON.stringify(cacheData));
+    } catch (error) {
+      console.error('Error setting cache:', error);
     }
   }
 
