@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, XCircle, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiClient } from "@/lib/api-client";
@@ -188,12 +187,12 @@ export default function KycApprovalsPage() {
                     </div>
                   </div>
 
-                  <Separator />
+                  <div className="w-full h-px bg-gray-300" />
 
                   <div>
                     <p className="text-sm font-medium mb-3">Uploaded Documents (click to view placeholder)</p>
                     <div className="grid grid-cols-3 gap-3">
-                      {submission.documents.map((doc, idx) => (
+                      {submission.documents.map((doc: string, idx: number) => (
                         <div
                           key={idx}
                           className="aspect-video bg-neutral-200 rounded-md flex items-center justify-center text-xs text-muted-foreground hover:bg-neutral-300 cursor-pointer transition-colors"

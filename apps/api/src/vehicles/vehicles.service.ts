@@ -6,14 +6,58 @@ import { CreateVehicleDto, UpdateVehicleDto, VehicleSearchDto, AssignDriverDto }
 export class VehiclesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(ownerId: string, dto: CreateVehicleDto) {
+  async create(ownerId: string, dto: CreateVehicleDto, files?: { images?: Express.Multer.File[], documents?: Express.Multer.File[] }) {
+    // Process uploaded files
+    const imageUrls: string[] = [];
+    const documentUrls: string[] = [];
+
+    if (files?.images) {
+      for (const image of files.images) {
+        // In a real app, you'd upload to cloud storage (AWS S3, Cloudinary, etc.)
+        // For now, we'll just store the filename
+        imageUrls.push(`/uploads/vehicles/${image.filename}`);
+      }
+    }
+
+    if (files?.documents) {
+      for (const doc of files.documents) {
+        documentUrls.push(`/uploads/documents/${doc.filename}`);
+      }
+    }
+
+    // Create title from make and model if not provided
+    const title = dto.title || `${dto.make} ${dto.model}`.trim();
+
+    // Parse features if provided
+    let features = dto.features;
+    if (typeof features === 'string') {
+      try {
+        // Validate it's a proper JSON array
+        const parsed = JSON.parse(features);
+        if (Array.isArray(parsed)) {
+          features = JSON.stringify(parsed);
+        }
+      } catch (e) {
+        // If parsing fails, treat as empty array
+        features = JSON.stringify([]);
+      }
+    }
+
     return this.prisma.vehicle.create({
       data: {
         ...dto,
+        title,
+        features,
         ownerId,
+        images: JSON.stringify(imageUrls),
+        documents: JSON.stringify(documentUrls),
+        status: 'PENDING', // Vehicles need approval
       },
       include: {
         driver: true,
+        owner: {
+          select: { id: true, name: true, phone: true },
+        },
       },
     });
   }

@@ -19,7 +19,7 @@ type User = {
   };
 } | null;
 
-type AuthContextType = {
+export type AuthContextType = {
   user: User;
   login: (phone: string, code: string) => Promise<{ success: boolean; user?: any }>;
   logout: () => void;

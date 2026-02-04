@@ -2,10 +2,10 @@ import { z } from "zod";
 
 export const bookingSchema = z.object({
   startDate: z.date({
-    required_error: "Start date is required",
+    message: "Start date is required",
   }),
   endDate: z.date({
-    required_error: "End date is required",
+    message: "End date is required",
   }),
   pickupTime: z.string().min(1, "Pickup time is required"),
   returnTime: z.string().min(1, "Return time is required"),

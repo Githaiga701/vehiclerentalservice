@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { AlertCircle, Loader2, Phone, User as UserIcon, CheckCircle2, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import Link from "next/link";
@@ -251,7 +250,7 @@ export default function RegisterPage() {
           </CardContent>
 
           <CardFooter className="flex flex-col space-y-4">
-            <Separator />
+            <div className="w-full h-px bg-gray-300" />
             <div className="text-center text-sm text-gray-600">
               Already have an account?{" "}
               <Link href="/login" className="text-blue-600 hover:text-blue-800 font-medium">

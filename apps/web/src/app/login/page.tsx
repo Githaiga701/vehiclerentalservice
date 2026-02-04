@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { AlertCircle, Loader2, Phone, Shield, CheckCircle2, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import Link from "next/link";
@@ -94,25 +93,6 @@ export default function LoginPage() {
     setIsLoading(false);
   };
 
-  // Demo login function for testing
-  const quickLogin = async (role: "user" | "admin") => {
-    setIsLoading(true);
-    
-    // Use real phone numbers from the seeded data
-    const phoneNumber = role === "admin" ? "+254700000000" : "+254712345678";
-    
-    // Request OTP first
-    const otpSuccess = await requestOtp(phoneNumber);
-    if (otpSuccess) {
-      setPhone(phoneNumber);
-      setStep("otp");
-      // Show a message about checking the server console for OTP
-      setError("Check the server console for the OTP code");
-    }
-    
-    setIsLoading(false);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-white flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -147,48 +127,6 @@ export default function LoginPage() {
           </CardHeader>
 
           <CardContent className="space-y-4">
-            {/* Demo Login Buttons */}
-            {step === "phone" && (
-              <div className="space-y-3 mb-6">
-                <p className="text-sm font-medium text-center text-muted-foreground">
-                  Quick Demo Login
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => quickLogin("user")}
-                    disabled={isLoading}
-                    className="h-auto py-4 flex-col gap-2"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-lg">👤</span>
-                    </div>
-                    <span className="text-sm font-semibold">Demo User</span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => quickLogin("admin")}
-                    disabled={isLoading}
-                    className="h-auto py-4 flex-col gap-2"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
-                      <span className="text-lg">👨‍💼</span>
-                    </div>
-                    <span className="text-sm font-semibold">Demo Admin</span>
-                  </Button>
-                </div>
-                
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <Separator />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">Or login with phone</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {error && (
               <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg">
                 <AlertCircle className="w-4 h-4" />
@@ -298,7 +236,7 @@ export default function LoginPage() {
           </CardContent>
 
           <CardFooter className="flex flex-col space-y-4">
-            <Separator />
+            <div className="w-full h-px bg-gray-300" />
             <div className="text-center text-sm text-gray-600">
               Don't have an account?{" "}
               <Link href="/register" className="text-blue-600 hover:text-blue-800 font-medium">
@@ -313,6 +251,21 @@ export default function LoginPage() {
           <p>🔒 Your phone number is encrypted and secure</p>
           <p>We'll never share your personal information</p>
         </div>
+
+        {/* Development Note - Remove in production */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-xs text-blue-700 text-center font-medium mb-1">
+              🧪 Development Mode - Test Accounts
+            </p>
+            <div className="text-xs text-blue-600 space-y-1">
+              <p><strong>Regular User:</strong> +254712345678</p>
+              <p><strong>Owner:</strong> +254723456789</p>
+              <p><strong>Admin:</strong> +254700000000</p>
+              <p><strong>OTP:</strong> Any 6-digit code (e.g., 123456)</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

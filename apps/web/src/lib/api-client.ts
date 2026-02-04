@@ -255,6 +255,14 @@ class ApiClient {
     });
   }
 
+  async addVehicle(formData: FormData) {
+    return this.request<any>('/vehicles', {
+      method: 'POST',
+      body: formData,
+      headers: {}, // Remove Content-Type to let browser set it for FormData
+    });
+  }
+
   async updateVehicle(id: string, data: any) {
     return this.request<any>(`/vehicles/${id}`, {
       method: 'PUT',

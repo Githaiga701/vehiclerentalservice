@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import OfflineIndicator from "@/components/OfflineIndicator";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
+import FloatingActionButton from "@/components/FloatingActionButton";
 
 // Load fonts
 const inter = Inter({ 
@@ -137,6 +138,7 @@ export default function RootLayout({
           <PWAInstallPrompt />
           <OfflineIndicator />
           <ServiceWorkerRegistration />
+          <FloatingActionButton />
         </AuthProvider>
       </body>
     </html>

@@ -30,10 +30,10 @@ import { toast } from "sonner";
 
 const bookingSchema = z.object({
   startDate: z.date({
-    required_error: "Start date is required",
+    message: "Start date is required",
   }),
   endDate: z.date({
-    required_error: "End date is required",
+    message: "End date is required",
   }),
   pickupTime: z.string().min(1, "Pickup time is required"),
   returnTime: z.string().min(1, "Return time is required"),
@@ -41,7 +41,7 @@ const bookingSchema = z.object({
   driverPhone: z.string().min(10, "Valid phone number is required"),
   driverLicense: z.string().min(5, "Driver license number is required"),
   specialRequests: z.string().optional(),
-  needsDelivery: z.boolean().default(false),
+  needsDelivery: z.boolean(),
   agreedToTerms: z.boolean().refine((val) => val === true, {
     message: "You must agree to the terms and conditions",
   }),

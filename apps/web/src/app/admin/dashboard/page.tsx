@@ -6,7 +6,6 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { 
   Users, 
   Car, 
@@ -319,7 +318,7 @@ export default function AdminDashboard() {
                         </Badge>
                       </div>
                       {index < recentActivities.length - 1 && (
-                        <Separator className="mt-4" />
+                        <div className="w-full h-px bg-gray-300 mt-4" />
                       )}
                     </div>
                   ))}

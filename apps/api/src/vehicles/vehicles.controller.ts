@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, HttpCode, HttpStatus, UseInterceptors, UploadedFiles } from '@nestjs/common';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { VehiclesService } from './vehicles.service';
 import { CreateVehicleDto, UpdateVehicleDto, VehicleSearchDto, AssignDriverDto } from './dto/vehicle.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -12,8 +13,16 @@ export class VehiclesController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  async create(@CurrentUser() user: any, @Body() dto: CreateVehicleDto) {
-    return this.vehiclesService.create(user.sub, dto);
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'images', maxCount: 10 },
+    { name: 'documents', maxCount: 5 }
+  ]))
+  async create(
+    @CurrentUser() user: any, 
+    @Body() dto: CreateVehicleDto,
+    @UploadedFiles() files: { images?: Express.Multer.File[], documents?: Express.Multer.File[] }
+  ) {
+    return this.vehiclesService.create(user.sub, dto, files);
   }
 
   @Get()

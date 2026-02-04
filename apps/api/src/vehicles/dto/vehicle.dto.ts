@@ -4,27 +4,60 @@ import { Type } from 'class-transformer';
 export class CreateVehicleDto {
   @IsNotEmpty()
   @IsString()
-  title!: string;
+  make!: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  description?: string;
+  model!: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  @Type(() => Number)
+  year!: number;
 
   @IsNotEmpty()
   @IsString()
   category!: string;
 
+  @IsNotEmpty()
+  @IsString()
+  transmission!: string;
+
+  @IsNotEmpty()
+  @IsString()
+  fuelType!: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  @Type(() => Number)
+  seats!: number;
+
+  @IsOptional()
+  @IsString()
+  engineSize?: string;
+
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
+  mileage?: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  @Type(() => Number)
   @Min(0)
-  dailyPrice?: number;
+  dailyPrice!: number;
 
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
   @Min(0)
-  monthlyPrice?: number;
+  weeklyDiscount?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  monthlyDiscount?: number;
 
   @IsNotEmpty()
   @IsString()
@@ -32,29 +65,28 @@ export class CreateVehicleDto {
 
   @IsOptional()
   @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  features?: string; // JSON string of features array
+
+  @IsOptional()
+  @IsString()
   images?: string;
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  seats?: number;
+  @IsString()
+  documents?: string;
 
+  // Legacy field for backward compatibility
   @IsOptional()
   @IsString()
-  transmission?: string;
-
-  @IsOptional()
-  @IsString()
-  fuelType?: string;
-
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  year?: number;
-
-  @IsOptional()
-  @IsBoolean()
-  withDriver?: boolean;
+  title?: string;
 }
 
 export class UpdateVehicleDto {

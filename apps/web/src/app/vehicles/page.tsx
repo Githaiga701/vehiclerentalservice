@@ -76,7 +76,7 @@ export default function VehiclesPage() {
   // Client-side filtering & sorting for search and sort
   const filteredVehicles = vehicles
     .filter((vehicle) => {
-      const vehicleName = vehicle.name || vehicle.title || "";
+      const vehicleName = vehicle.name || "";
       const vehicleLocation = vehicle.location || "";
       const vehicleCategory = vehicle.category || "";
       
@@ -88,8 +88,8 @@ export default function VehiclesPage() {
       return matchesSearch;
     })
     .sort((a, b) => {
-      const priceA = a.pricePerDay || a.dailyPrice || 0;
-      const priceB = b.pricePerDay || b.dailyPrice || 0;
+      const priceA = a.pricePerDay || 0;
+      const priceB = b.pricePerDay || 0;
       
       if (sortBy === "price-low") return priceA - priceB;
       if (sortBy === "price-high") return priceB - priceA;
