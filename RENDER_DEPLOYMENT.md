@@ -5,6 +5,7 @@
 - **Peer Dependencies**: Added `.npmrc` files with `legacy-peer-deps=true`
 - **Database Configuration**: Updated to use PostgreSQL for production
 - **Build Process**: Added proper build scripts and environment handling
+- **Start Script**: Fixed to use `node dist/main.js` for production
 
 ## 📋 Pre-Deployment Checklist
 
@@ -24,7 +25,7 @@ PORT=10000
 
 ## 🔧 Render Configuration
 
-### Option 1: Using Render Dashboard (Recommended)
+### Render Dashboard Settings (IMPORTANT - Use These Exact Settings)
 
 1. **Create New Web Service**
    - Go to [Render Dashboard](https://dashboard.render.com)
@@ -40,52 +41,57 @@ PORT=10000
    Root Directory: apps/api
    ```
 
-3. **Build & Deploy Settings**
+3. **Build & Deploy Settings** (CRITICAL - Copy Exactly)
    ```
-   Build Command: npm install --legacy-peer-deps && npm run build
-   Start Command: npm run start
+   Build Command: npm install --legacy-peer-deps && npx prisma generate && npm run build
+   Start Command: npm run start:prod
    ```
 
 4. **Environment Variables**
-   Add the variables listed above in the Environment section
+   Add these in the Environment section:
+   ```
+   NODE_ENV=production
+   JWT_SECRET=your-long-random-secret-key-here
+   JWT_REFRESH_SECRET=your-different-long-random-secret-key
+   PORT=10000
+   DATABASE_URL=(will be auto-set when you add database)
+   ```
 
 5. **Database Setup**
-   - Create a new PostgreSQL database in Render
-   - Copy the connection string to `DATABASE_URL` environment variable
-
-### Option 2: Using render.yaml (Alternative)
-
-If you prefer infrastructure as code, use the `render.yaml` file in the root directory.
+   - Click "New" → "PostgreSQL"
+   - Name: vehiclerent-db
+   - After creation, the DATABASE_URL will be automatically added to your web service
 
 ## 🗄️ Database Migration
 
-After deployment, your database will be automatically migrated thanks to the `postinstall` script in `package.json`.
+The database will be automatically migrated during the build process thanks to the `postinstall` script.
 
 ## 🔍 Troubleshooting
 
-### Common Issues & Solutions
+### If Build Still Fails
 
-1. **Build Fails with ESLint Errors**
-   ```bash
-   # Solution: The .npmrc file should handle this
-   # If it persists, add this to build command:
-   npm install --legacy-peer-deps --ignore-scripts
-   ```
+1. **Check Build Logs** - Look for specific error messages
+2. **Verify Root Directory** - Must be exactly `apps/api`
+3. **Check Build Command** - Must include `--legacy-peer-deps`
 
-2. **Prisma Client Not Generated**
-   ```bash
-   # The postinstall script should handle this
-   # Manual fix: Add to build command:
-   && npx prisma generate
-   ```
+### If Start Fails
 
-3. **Database Connection Issues**
-   - Verify `DATABASE_URL` is set correctly
-   - Ensure database is in the same region as your service
+1. **Verify Start Command** - Must be `npm run start:prod`
+2. **Check Build Output** - Ensure `dist/main.js` exists
+3. **Environment Variables** - Verify all required vars are set
 
-4. **CORS Issues**
-   - Update `FRONTEND_URL` environment variable with your frontend domain
-   - The API automatically allows this origin
+### Common Error Solutions
+
+**"Missing script: start"**
+- ✅ Fixed: Updated package.json with correct start scripts
+
+**"Cannot find module"**
+- Ensure build completed successfully
+- Check that `dist/main.js` exists
+
+**"Database connection failed"**
+- Verify DATABASE_URL is set
+- Ensure database is in same region
 
 ## 📊 Monitoring
 
@@ -99,67 +105,57 @@ Your API includes a health check endpoint at `/` that returns:
 }
 ```
 
-### Logs
-Monitor your application logs in the Render dashboard for any issues.
+## 🚀 Step-by-Step Deployment
 
-## 🚀 Deployment Steps
+### Step 1: Push to GitHub
+```bash
+git add .
+git commit -m "Fix start script for Render deployment"
+git push origin main
+```
 
-1. **Push to GitHub**
-   ```bash
-   git add .
-   git commit -m "Fix ESLint conflicts for Render deployment"
-   git push origin main
-   ```
+### Step 2: Create Database First
+1. Go to Render Dashboard
+2. Click "New" → "PostgreSQL"
+3. Name: `vehiclerent-db`
+4. Wait for it to be ready
 
-2. **Create Render Service**
-   - Follow Option 1 above
-   - Wait for build to complete (5-10 minutes)
+### Step 3: Create Web Service
+1. Click "New" → "Web Service"
+2. Connect your GitHub repo
+3. **Root Directory**: `apps/api`
+4. **Build Command**: `npm install --legacy-peer-deps && npx prisma generate && npm run build`
+5. **Start Command**: `npm run start:prod`
 
-3. **Test Deployment**
-   - Visit your Render URL
-   - Should see the health check response
-   - Test API endpoints with Postman/curl
+### Step 4: Add Environment Variables
+```
+NODE_ENV=production
+JWT_SECRET=make-this-very-long-and-random-at-least-32-characters
+JWT_REFRESH_SECRET=make-this-different-and-also-very-long-random
+PORT=10000
+```
 
-4. **Update Frontend**
-   - Update your frontend's API URL to point to Render
-   - Deploy frontend to Vercel/Netlify
+### Step 5: Connect Database
+1. In your web service settings
+2. Go to Environment
+3. Add DATABASE_URL and select your PostgreSQL database
 
-## 🔐 Security Notes
+### Step 6: Deploy
+1. Click "Create Web Service"
+2. Wait 5-10 minutes for build and deployment
+3. Check logs for any errors
 
-- JWT secrets are auto-generated by Render if not provided
-- Database credentials are managed by Render
-- HTTPS is automatically enabled
-- Environment variables are encrypted
+## ✅ Verification
 
-## 📈 Performance
+After deployment:
+1. Visit your Render URL - should show health check response
+2. Test API endpoints: `https://your-app.onrender.com/`
+3. Check logs for any errors
 
-- Free tier: 512MB RAM, shared CPU
-- Upgrade to paid plans for better performance
-- Consider adding Redis for caching (separate service)
+## 🎯 Next Steps
 
-## 🎯 Next Steps After Deployment
+1. **Update Frontend**: Change API URL to your Render URL
+2. **Test All Features**: Authentication, vehicle listing, bookings
+3. **Monitor Performance**: Check response times and error rates
 
-1. **Test All Endpoints**
-   - Authentication (OTP)
-   - Vehicle CRUD
-   - File uploads
-   - Booking system
-
-2. **Update Frontend Configuration**
-   - Change API_BASE_URL to your Render URL
-   - Test complete user flows
-
-3. **Monitor Performance**
-   - Check response times
-   - Monitor error rates
-   - Set up alerts
-
-## 📞 Support
-
-If you encounter issues:
-1. Check Render build logs
-2. Verify environment variables
-3. Test database connectivity
-4. Review API health check endpoint
-
-Your API should now be successfully deployed on Render! 🎉
+Your API should now deploy successfully! 🎉
