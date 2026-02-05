@@ -28,4 +28,23 @@ else
     exit 1
 fi
 
+# Verify package.json has start script
+echo "🔍 Checking package.json scripts..."
+if grep -q '"start"' package.json; then
+    echo "✅ Start script found in package.json"
+else
+    echo "❌ Start script missing from package.json"
+    echo "🔧 Adding start script..."
+    # Backup approach - ensure start script exists
+    npm pkg set scripts.start="node start.js"
+fi
+
+# Verify start.js exists
+if [ -f "start.js" ]; then
+    echo "✅ start.js file found"
+else
+    echo "❌ start.js file missing"
+    exit 1
+fi
+
 echo "🎉 Build process completed!"

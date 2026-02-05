@@ -2,10 +2,13 @@
   "name": "api",
   "version": "1.0.0",
   "private": true,
+  "main": "start.js",
   "scripts": {
     "build": "nest build",
+    "postbuild": "echo '✅ Build completed. Files:' && ls -la dist/ && echo '📦 Package scripts:' && npm run --silent",
     "start": "node start.js",
     "start:prod": "node start.js",
+    "start:server": "node server.js",
     "start:dev": "nest start --watch",
     "dev": "npm run start:dev",
     "lint": "eslint \"src/**/*.{ts,tsx}\" --fix",
