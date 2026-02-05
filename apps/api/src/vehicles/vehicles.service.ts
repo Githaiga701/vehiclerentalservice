@@ -4,7 +4,27 @@ import { CreateVehicleDto, UpdateVehicleDto, VehicleSearchDto, AssignDriverDto }
 
 @Injectable()
 export class VehiclesService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly isSQLite: boolean;
+
+  constructor(private readonly prisma: PrismaService) {
+    // Detect database provider from environment or Prisma config
+    const databaseUrl = process.env.DATABASE_URL || '';
+    this.isSQLite = databaseUrl.includes('file:') || databaseUrl.includes('.db');
+  }
+
+  /**
+   * Helper method to create case-insensitive string filter
+   * Works for SQLite, PostgreSQL, and MySQL
+   */
+  private stringFilter(value: string) {
+    if (this.isSQLite) {
+      // SQLite doesn't support mode, so we'll use contains without it
+      // For better SQLite support, you could convert to lowercase on both sides
+      return { contains: value };
+    }
+    // PostgreSQL and MySQL support case-insensitive mode
+    return { contains: value, mode: 'insensitive' as any };
+  }
 
   async create(ownerId: string, dto: CreateVehicleDto, files?: { images?: Express.Multer.File[], documents?: Express.Multer.File[] }) {
     // Process uploaded files
@@ -68,11 +88,11 @@ export class VehiclesService {
     const where: any = {};
 
     if (category) {
-      where.category = { contains: category, mode: 'insensitive' };
+      where.category = this.stringFilter(category);
     }
 
     if (location) {
-      where.location = { contains: location, mode: 'insensitive' };
+      where.location = this.stringFilter(location);
     }
 
     if (minPrice !== undefined || maxPrice !== undefined) {
@@ -86,11 +106,11 @@ export class VehiclesService {
     }
 
     if (transmission) {
-      where.transmission = { contains: transmission, mode: 'insensitive' };
+      where.transmission = this.stringFilter(transmission);
     }
 
     if (fuelType) {
-      where.fuelType = { contains: fuelType, mode: 'insensitive' };
+      where.fuelType = this.stringFilter(fuelType);
     }
 
     if (withDriver !== undefined) {

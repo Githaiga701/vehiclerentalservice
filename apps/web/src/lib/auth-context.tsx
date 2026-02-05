@@ -26,6 +26,7 @@ export type AuthContextType = {
   logout: () => void;
   requestOtp: (phone: string) => Promise<boolean>;
   updateUser: (userData: Partial<NonNullable<User>>) => void;
+  refreshUser: () => Promise<void>;
   isLoading: boolean;
   isAuthenticated: boolean;
   isKycApproved: boolean;
@@ -131,6 +132,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshUser = async () => {
+    try {
+      const userData = await apiClient.getCurrentUser();
+      setUser(userData);
+    } catch (error) {
+      console.error("Failed to refresh user data:", error);
+    }
+  };
+
   const isAuthenticated = !!user;
   const isKycApproved = user?.kycStatus === "APPROVED";
   const requiresKyc = isAuthenticated && !isKycApproved;
@@ -146,6 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout, 
         requestOtp,
         updateUser,
+        refreshUser,
         isLoading, 
         isAuthenticated, 
         isKycApproved, 

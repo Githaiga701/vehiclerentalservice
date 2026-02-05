@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { apiClient, handleApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,36 +20,23 @@ import {
   User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
-// Mock bookings data
-const mockBookings = [
-  {
-    id: "BK001",
-    vehicleName: "Toyota Fortuner 2023",
-    vehicleImage: "https://images.unsplash.com/photo-1742697167580-af91e3ead35e?auto=format&fit=crop&q=80&w=400",
-    startDate: "2026-02-05",
-    endDate: "2026-02-08",
-    totalPrice: 25500,
-    status: "CONFIRMED",
-    pickupLocation: "Nairobi - Westlands",
-    ownerName: "Mary Wanjiku",
-    ownerPhone: "+254723456789",
-    createdAt: "2026-02-01",
-  },
-  {
-    id: "BK002",
-    vehicleName: "Nissan X-Trail 2022",
-    vehicleImage: "https://images.unsplash.com/photo-1551817280-6d59c77ce1b8?auto=format&fit=crop&q=80&w=400",
-    startDate: "2026-01-28",
-    endDate: "2026-01-30",
-    totalPrice: 13000,
-    status: "COMPLETED",
-    pickupLocation: "Mombasa - CBD",
-    ownerName: "John Kamau",
-    ownerPhone: "+254734567890",
-    createdAt: "2026-01-25",
-  },
-];
+interface Booking {
+  id: string;
+  vehicleId: string;
+  vehicle?: {
+    id: string;
+    name: string;
+    images?: string[];
+  };
+  startDate: string;
+  endDate: string;
+  totalPrice: number;
+  status: string;
+  pickupLocation?: string;
+  createdAt: string;
+}
 
 const statusColors = {
   PENDING: "bg-yellow-100 text-yellow-800 border-yellow-200",
@@ -69,7 +57,7 @@ const statusIcons = {
 export default function BookingsPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
-  const [bookings, setBookings] = useState(mockBookings);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
 
   useEffect(() => {
@@ -79,12 +67,38 @@ export default function BookingsPage() {
   }, [isAuthenticated, isLoading, router]);
 
   useEffect(() => {
-    // Simulate loading data
-    const timer = setTimeout(() => {
-      setIsLoadingData(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
+    const fetchBookings = async () => {
+      if (!isAuthenticated) return;
+      
+      try {
+        setIsLoadingData(true);
+        const response = await apiClient.getMyBookings();
+        setBookings(response || []);
+      } catch (error) {
+        console.error("Error fetching bookings:", error);
+        handleApiError(error);
+        setBookings([]);
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchBookings();
+    }
+  }, [isAuthenticated]);
+
+  const handleCancelBooking = async (bookingId: string) => {
+    try {
+      await apiClient.updateBookingStatus(bookingId, "CANCELLED");
+      toast.success("Booking cancelled successfully");
+      // Refresh bookings
+      const response = await apiClient.getMyBookings();
+      setBookings(response || []);
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
 
   if (isLoading || isLoadingData) {
     return (
@@ -123,7 +137,9 @@ export default function BookingsPage() {
         ) : (
           <div className="space-y-6">
             {bookings.map((booking) => {
-              const StatusIcon = statusIcons[booking.status as keyof typeof statusIcons];
+              const StatusIcon = statusIcons[booking.status as keyof typeof statusIcons] || Clock;
+              const vehicleImage = booking.vehicle?.images?.[0] || "https://images.unsplash.com/photo-1533473359331-35acde7260c9?auto=format&fit=crop&q=80&w=400";
+              const vehicleName = booking.vehicle?.name || "Vehicle";
               
               return (
                 <Card key={booking.id} className="overflow-hidden">
@@ -133,8 +149,8 @@ export default function BookingsPage() {
                       <div className="flex items-start space-x-4 flex-1">
                         <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-gray-100">
                           <img
-                            src={booking.vehicleImage}
-                            alt={booking.vehicleName}
+                            src={vehicleImage}
+                            alt={vehicleName}
                             className="w-full h-full object-cover"
                           />
                         </div>
@@ -142,8 +158,8 @@ export default function BookingsPage() {
                         <div className="flex-1 space-y-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3">
-                              <h3 className="text-lg font-semibold">{booking.vehicleName}</h3>
-                              <Badge className={cn("border text-xs", statusColors[booking.status as keyof typeof statusColors])}>
+                              <h3 className="text-lg font-semibold">{vehicleName}</h3>
+                              <Badge className={cn("border text-xs", statusColors[booking.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800 border-gray-200")}>
                                 <StatusIcon className="w-3 h-3 mr-1" />
                                 {booking.status.replace("_", " ")}
                               </Badge>
@@ -153,40 +169,38 @@ export default function BookingsPage() {
                                 KSh {booking.totalPrice.toLocaleString()}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                Booking #{booking.id}
+                                Booking #{booking.id.slice(0, 8)}
                               </p>
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                             <div className="flex items-center space-x-2">
                               <Calendar className="w-4 h-4 text-muted-foreground" />
-                              <span>{booking.startDate} to {booking.endDate}</span>
+                              <span>{new Date(booking.startDate).toLocaleDateString()} to {new Date(booking.endDate).toLocaleDateString()}</span>
                             </div>
+                            {booking.pickupLocation && (
+                              <div className="flex items-center space-x-2">
+                                <MapPin className="w-4 h-4 text-muted-foreground" />
+                                <span>{booking.pickupLocation}</span>
+                              </div>
+                            )}
                             <div className="flex items-center space-x-2">
-                              <MapPin className="w-4 h-4 text-muted-foreground" />
-                              <span>{booking.pickupLocation}</span>
+                              <Clock className="w-4 h-4 text-muted-foreground" />
+                              <span>Booked {new Date(booking.createdAt).toLocaleDateString()}</span>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <User className="w-4 h-4 text-muted-foreground" />
-                              <span>{booking.ownerName}</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Phone className="w-4 h-4 text-muted-foreground" />
-                              <span>{booking.ownerPhone}</span>
-                            </div>
-                          </div>
-
-                          <div className="text-xs text-muted-foreground">
-                            Booked on {booking.createdAt}
                           </div>
                         </div>
                       </div>
 
                       {/* Right side - Actions */}
                       <div className="flex flex-col space-y-2 lg:ml-6">
-                        <Button variant="outline" size="sm">
-                          View Details
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => router.push(`/vehicles/${booking.vehicleId}`)}
+                        >
+                          View Vehicle
                         </Button>
                         
                         {booking.status === "CONFIRMED" && (
@@ -202,7 +216,12 @@ export default function BookingsPage() {
                         )}
                         
                         {booking.status === "PENDING" && (
-                          <Button size="sm" variant="outline" className="border-red-600 text-red-600 hover:bg-red-50">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="border-red-600 text-red-600 hover:bg-red-50"
+                            onClick={() => handleCancelBooking(booking.id)}
+                          >
                             Cancel Booking
                           </Button>
                         )}

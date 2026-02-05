@@ -412,7 +412,7 @@ export default function AdminVehiclesPage() {
                           )}
                         </Button>
                         
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => router.push(`/vehicles/${vehicle.id}`)}>
                           <Eye className="w-3 h-3 mr-1" />
                           View
                         </Button>

@@ -66,13 +66,26 @@ export function VehicleCard(props: VehicleCardProps) {
     isAvailable = true,
     location = "Nairobi",
     category = "SUV",
-    features = [],
+    features: rawFeatures = [],
   } = vehicle;
 
   // Handle different property names from API vs mock data
   const name = vehicleName || title || "Unknown Vehicle";
   const image = vehicleImage || (typeof images === 'string' ? JSON.parse(images)?.[0] : images?.[0]) || "/placeholder-car.jpg";
   const pricePerDay = vehiclePricePerDay || dailyPrice || 0;
+  
+  // Parse features if it's a JSON string, otherwise use as array
+  let features: string[] = [];
+  try {
+    if (Array.isArray(rawFeatures)) {
+      features = rawFeatures;
+    } else if (typeof rawFeatures === 'string' && rawFeatures) {
+      features = JSON.parse(rawFeatures);
+    }
+  } catch (error) {
+    console.warn('Failed to parse features:', error);
+    features = [];
+  }
 
   const priority = props.priority || false;
   
