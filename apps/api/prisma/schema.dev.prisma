@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Healthcheck {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+}
+
+enum UserRole {
+  OWNER
+  RENTER
+  ADMIN
+}
+
+enum KycStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum VehicleStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id          String     @id @default(cuid())
+  name        String
+  email       String?    @unique
+  phone       String     @unique
+  role        UserRole   @default(RENTER)
+  kycStatus   KycStatus? @default(PENDING)
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relations
+  vehicles    Vehicle[]
+  bookings    Booking[]
+  kycDocuments KycDocument[]
+  ratings     Rating[]
+  contacts    Contact[]
+
+  @@map("users")
+}
+
+model KycDocument {
+  id          String    @id @default(cuid())
+  userId      String
+  documentType String   // "id", "license", "passport", etc.
+  documentUrl String
+  status      KycStatus @default(PENDING)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("kyc_documents")
+}
+
+model Vehicle {
+  id              String        @id @default(cuid())
+  title           String
+  make            String
+  model           String
+  year            Int
+  category        String
+  transmission    String
+  fuelType        String
+  seats           Int
+  engineSize      String?
+  mileage         Int?
+  dailyPrice      Float
+  weeklyDiscount  Float?        @default(0)
+  monthlyDiscount Float?        @default(0)
+  location        String
+  address         String?
+  description     String?
+  features        String?       // JSON string
+  images          String?       // JSON string array
+  documents       String?       // JSON string array
+  isAvailable     Boolean       @default(true)
+  withDriver      Boolean       @default(false)
+  status          VehicleStatus @default(PENDING)
+  ownerId         String
+  driverId        String?       @unique
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  owner    User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  driver   Driver?   @relation(fields: [driverId], references: [id])
+  bookings Booking[]
+  ratings  Rating[]
+
+  @@map("vehicles")
+}
+
+model Driver {
+  id          String   @id @default(cuid())
+  name        String
+  phone       String   @unique
+  email       String?
+  licenseNumber String @unique
+  experience  Int      // years
+  rating      Float?   @default(0)
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  vehicle Vehicle?
+
+  @@map("drivers")
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  vehicleId   String
+  userId      String
+  startDate   DateTime
+  endDate     DateTime
+  totalAmount Float
+  status      BookingStatus @default(PENDING)
+  pickupLocation String?
+  dropoffLocation String?
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("bookings")
+}
+
+model Rating {
+  id        String   @id @default(cuid())
+  vehicleId String
+  raterId   String
+  rating    Int      // 1-5
+  comment   String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  rater   User    @relation(fields: [raterId], references: [id], onDelete: Cascade)
+
+  @@unique([vehicleId, raterId])
+  @@map("ratings")
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String
+  userId    String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("contacts")
+}

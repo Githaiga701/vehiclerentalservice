@@ -7,13 +7,15 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "dev": "npm run start:dev",
-    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" --fix",
     "test": "echo \"No tests yet\"",
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "prisma:seed": "tsx prisma/seed.ts",
-    "db:seed": "npm run prisma:seed"
+    "db:seed": "npm run prisma:seed",
+    "postinstall": "npm run prisma:generate"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -45,6 +47,9 @@
     "@types/multer": "^2.0.0",
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.1",
     "prisma": "^6.19.2",
     "tsx": "^4.21.0",
     "typescript": "^5.6.0"
