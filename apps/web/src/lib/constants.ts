@@ -225,6 +225,66 @@ export const MOCK_VEHICLES = [
     features: ["Virtual Cockpit", "Matrix LED", "Bang & Olufsen", "Quattro AWD"],
     description: "Sophisticated luxury SUV with cutting-edge technology.",
   },
+  {
+    id: "16",
+    name: "Nissan Matatu 2022",
+    image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=800",
+    pricePerDay: 4500,
+    seats: 14,
+    transmission: "Manual" as const,
+    fuelType: "Diesel",
+    year: 2022,
+    rating: 4.3,
+    location: "Nairobi",
+    category: "Matatu",
+    features: ["Public Service Vehicle", "High Capacity", "Durable"],
+    description: "Reliable matatu perfect for group transportation and events.",
+  },
+  {
+    id: "17",
+    name: "Toyota Hiace Matatu 2023",
+    image: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&q=80&w=800",
+    pricePerDay: 5200,
+    seats: 18,
+    transmission: "Manual" as const,
+    fuelType: "Diesel",
+    year: 2023,
+    rating: 4.5,
+    location: "Mombasa",
+    category: "Matatu",
+    features: ["Air Conditioning", "Music System", "Comfortable Seating"],
+    description: "Modern matatu with enhanced comfort for longer journeys.",
+  },
+  {
+    id: "18",
+    name: "Isuzu Nganya Bus 2023",
+    image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=800",
+    pricePerDay: 6500,
+    seats: 30,
+    transmission: "Manual" as const,
+    fuelType: "Diesel",
+    year: 2023,
+    rating: 4.2,
+    location: "Nairobi",
+    category: "Nganya",
+    features: ["High Capacity", "Air Conditioning", "Music System", "Comfortable Seating"],
+    description: "30-seater Nganya bus perfect for large group transportation and events.",
+  },
+  {
+    id: "19",
+    name: "Mitsubishi Nganya Bus 2022",
+    image: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&q=80&w=800",
+    pricePerDay: 6200,
+    seats: 30,
+    transmission: "Manual" as const,
+    fuelType: "Diesel",
+    year: 2022,
+    rating: 4.0,
+    location: "Kisumu",
+    category: "Nganya",
+    features: ["Large Capacity", "Durable Build", "Entertainment System", "Luggage Space"],
+    description: "Reliable 30-seater Nganya bus ideal for long-distance group travel.",
+  },
 ];
 
 // Categories for filtering
@@ -234,6 +294,33 @@ export const VEHICLE_CATEGORIES = [
   { value: "Sedan", label: "Sedans" },
   { value: "Luxury", label: "Luxury" },
   { value: "Compact", label: "Compact" },
+  { value: "Matatu", label: "Matatus" },
+  { value: "Nganya", label: "Nganyas (30-seater buses)" },
+];
+
+// Occasion-based vehicle mapping
+export const OCCASION_VEHICLE_MAPPING = {
+  wedding: ["Luxury", "Sedan"],
+  funeral: ["Sedan", "SUV"],
+  graduation: ["Luxury", "Sedan"],
+  roadtrip: ["SUV"],
+  business: ["Luxury", "Sedan"],
+  airport: ["Sedan", "SUV", "Luxury"],
+  safari: ["SUV"],
+  family: ["SUV", "Matatu"]
+};
+
+// Occasions for dropdown
+export const OCCASIONS = [
+  { value: "", label: "All Occasions" },
+  { value: "wedding", label: "Weddings" },
+  { value: "funeral", label: "Funerals" },
+  { value: "graduation", label: "Graduations" },
+  { value: "roadtrip", label: "Road Trips" },
+  { value: "business", label: "Business Events" },
+  { value: "airport", label: "Airport Transfers" },
+  { value: "safari", label: "Safari Adventures" },
+  { value: "family", label: "Family Outings" }
 ];
 
 // Locations

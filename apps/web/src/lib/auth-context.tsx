@@ -22,6 +22,7 @@ type User = {
 export type AuthContextType = {
   user: User;
   login: (phone: string, code: string) => Promise<{ success: boolean; user?: any }>;
+  register: (name: string, phone: string, code: string) => Promise<{ success: boolean; user?: any }>;
   logout: () => void;
   requestOtp: (phone: string) => Promise<boolean>;
   updateUser: (userData: Partial<NonNullable<User>>) => void;
@@ -38,8 +39,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+    
     // Check for stored token and fetch user data
     const initAuth = async () => {
       const token = localStorage.getItem("accessToken");
@@ -58,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     initAuth();
-  }, []);
+  }, [isClient]);
 
   const requestOtp = async (phone: string): Promise<boolean> => {
     try {
@@ -83,9 +91,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const register = async (name: string, phone: string, code: string): Promise<{ success: boolean; user?: any }> => {
+    try {
+      // First verify OTP (this creates the user if it doesn't exist)
+      const response = await apiClient.verifyOtp(phone, code);
+      
+      // If user doesn't have a name, update it
+      if (response.user && !response.user.name && name.trim()) {
+        // Update user name via API (we'll need to add this endpoint)
+        try {
+          await apiClient.updateProfile({ name: name.trim() });
+          response.user.name = name.trim();
+        } catch (updateError) {
+          console.warn("Failed to update user name:", updateError);
+        }
+      }
+      
+      setUser(response.user);
+      toast.success("Registration successful");
+      return { success: true, user: response.user };
+    } catch (error: any) {
+      toast.error(error.message || "Invalid OTP");
+      return { success: false };
+    }
+  };
+
   const logout = () => {
     setUser(null);
-    apiClient.clearToken();
+    if (typeof window !== 'undefined') {
+      apiClient.clearToken();
+    }
     toast.success("Logged out successfully");
   };
 
@@ -107,6 +142,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{ 
         user, 
         login, 
+        register,
         logout, 
         requestOtp,
         updateUser,

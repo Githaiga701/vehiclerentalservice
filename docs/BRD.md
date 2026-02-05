@@ -48,7 +48,7 @@ Authentication
 • Phone number + OTP (mandatory) 
 • Email (optional) 
 Notifications 
-• SMS (Phase 1) 
+• SMS (Phase 1)
 • WhatsApp (future phase) 
 Kerzner business use 
 5. USER TYPES 

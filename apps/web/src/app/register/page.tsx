@@ -13,7 +13,7 @@ import Link from "next/link";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { requestOtp, login } = useAuth();
+  const { requestOtp, register } = useAuth();
 
   const [step, setStep] = useState<"info" | "otp">("info");
   const [name, setName] = useState("");
@@ -75,7 +75,7 @@ export default function RegisterPage() {
     setIsLoading(true);
     const normalizedPhone = normalizePhone(phone);
     
-    const result = await login(normalizedPhone, otp);
+    const result = await register(name, normalizedPhone, otp);
     if (result.success && result.user) {
       // For new users, redirect to KYC regardless of role
       router.push("/kyc");

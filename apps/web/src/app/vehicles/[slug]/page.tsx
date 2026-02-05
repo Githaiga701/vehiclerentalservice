@@ -339,7 +339,7 @@ export default function VehicleDetailPage({ params }: { params: Promise<{ slug: 
                       {selectedDate ? format(selectedDate, "PPP") : <span>Select date</span>}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="w-auto p-0 bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 shadow-2xl">
                     <Calendar
                       mode="single"
                       selected={selectedDate}

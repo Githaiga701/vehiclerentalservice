@@ -5,7 +5,7 @@
   "main": "start.js",
   "scripts": {
     "build": "nest build",
-    "postbuild": "echo '✅ Build completed. Files:' && ls -la dist/ && echo '📦 Package scripts:' && npm run --silent",
+    "postbuild": "echo Build completed successfully",
     "start": "node start.js",
     "start:prod": "node start.js",
     "start:server": "node server.js",

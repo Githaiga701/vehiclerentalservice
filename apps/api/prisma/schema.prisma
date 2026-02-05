@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -117,6 +117,11 @@ model Vehicle {
   weeklyDiscount Int?     @default(0)
   monthlyDiscount Int?    @default(0)
   monthlyPrice   Int?     // Legacy field
+  
+  // Leasing options
+  availableForLease Boolean @default(false)
+  leaseMinDuration  Int?    // Minimum lease duration in months (6+ only)
+  leaseMonthlyPrice Int?    // Monthly lease price
   
   // Location and description
   location     String

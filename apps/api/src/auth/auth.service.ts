@@ -156,6 +156,29 @@ export class AuthService {
     return user;
   }
 
+  async updateProfile(userId: string, data: { name?: string; email?: string }) {
+    const updateData: any = {};
+    
+    if (data.name && data.name.trim()) {
+      updateData.name = data.name.trim();
+    }
+    
+    if (data.email && data.email.trim()) {
+      updateData.email = data.email.trim();
+    }
+
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+      include: {
+        kyc: true,
+        trustScore: true,
+      },
+    });
+
+    return user;
+  }
+
   private normalizePhone(phone: string): string {
     // Remove all non-digit characters
     const digits = phone.replace(/\D/g, '');

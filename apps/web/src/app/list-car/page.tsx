@@ -43,6 +43,8 @@ const VEHICLE_CATEGORIES = [
   { value: "Pickup", label: "Pickup Truck" },
   { value: "Van", label: "Van" },
   { value: "Luxury", label: "Luxury" },
+  { value: "Matatu", label: "Matatu" },
+  { value: "Nganya", label: "Nganya (30-seater bus)" },
 ];
 
 const FUEL_TYPES = [
@@ -83,6 +85,11 @@ interface VehicleFormData {
   dailyPrice: number;
   weeklyDiscount: number;
   monthlyDiscount: number;
+  
+  // Leasing Options
+  availableForLease: boolean;
+  leaseMinDuration: number; // in months
+  leaseMonthlyPrice: number;
   
   // Location
   location: string;
@@ -150,6 +157,9 @@ export default function ListCarPage() {
     dailyPrice: 0,
     weeklyDiscount: 0,
     monthlyDiscount: 0,
+    availableForLease: false,
+    leaseMinDuration: 6,
+    leaseMonthlyPrice: 0,
     location: "",
     address: "",
     description: "",
@@ -555,6 +565,61 @@ export default function ListCarPage() {
                           className="mt-2"
                         />
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="w-full h-px bg-gray-300 my-6" />
+
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4 flex items-center">
+                      <Calendar className="w-5 h-5 mr-2" />
+                      Leasing Options (Optional)
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          id="availableForLease"
+                          checked={formData.availableForLease}
+                          onChange={(e) => updateFormData("availableForLease", e.target.checked)}
+                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <label htmlFor="availableForLease" className="text-sm font-medium text-gray-700">
+                          Make this vehicle available for long-term leasing (6+ months)
+                        </label>
+                      </div>
+                      
+                      {formData.availableForLease && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                          <div>
+                            <Label htmlFor="leaseMinDuration">Minimum Lease Duration (months)</Label>
+                            <Input
+                              id="leaseMinDuration"
+                              type="number"
+                              min="6"
+                              max="60"
+                              value={formData.leaseMinDuration}
+                              onChange={(e) => updateFormData("leaseMinDuration", parseInt(e.target.value))}
+                              className="mt-2"
+                              placeholder="6"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Minimum 6 months required</p>
+                          </div>
+                          <div>
+                            <Label htmlFor="leaseMonthlyPrice">Monthly Lease Price (KSh)</Label>
+                            <Input
+                              id="leaseMonthlyPrice"
+                              type="number"
+                              min="0"
+                              value={formData.leaseMonthlyPrice}
+                              onChange={(e) => updateFormData("leaseMonthlyPrice", parseInt(e.target.value))}
+                              className="mt-2"
+                              placeholder="e.g., 45000"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Typically 15-25% less than daily rate × 30</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 

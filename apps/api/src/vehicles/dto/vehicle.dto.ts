@@ -59,6 +59,23 @@ export class CreateVehicleDto {
   @Min(0)
   monthlyDiscount?: number;
 
+  // Leasing options
+  @IsOptional()
+  @IsBoolean()
+  availableForLease?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(6)
+  leaseMinDuration?: number; // Minimum 6 months
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  leaseMonthlyPrice?: number;
+
   @IsNotEmpty()
   @IsString()
   location!: string;

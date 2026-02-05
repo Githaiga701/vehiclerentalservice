@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { cacheManager, type CacheManagerConfig, type CacheStats } from './cache-manager';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -8,15 +9,25 @@ interface ApiResponse<T = any> {
   error?: string;
 }
 
+interface CacheConfig {
+  ttl?: number; // Time to live in milliseconds
+  staleWhileRevalidate?: boolean;
+  key?: string;
+  type?: string; // Cache type for the cache manager
+}
+
 class ApiClient {
   private baseURL: string;
   private token: string | null = null;
+  // Legacy cache for backward compatibility - will be phased out
+  private requestCache = new Map<string, { data: any; timestamp: number; ttl: number }>();
 
   constructor(baseURL: string) {
     this.baseURL = baseURL;
     // Load token from localStorage on initialization
     if (typeof window !== 'undefined') {
       this.token = localStorage.getItem('accessToken');
+      this.loadCacheFromStorage();
     }
   }
 
@@ -35,25 +46,127 @@ class ApiClient {
     }
   }
 
+  private loadCacheFromStorage() {
+    if (typeof window === 'undefined') return;
+    
+    try {
+      const cached = localStorage.getItem('api_cache');
+      if (cached) {
+        const cacheData = JSON.parse(cached);
+        // Only load non-expired cache entries
+        Object.entries(cacheData).forEach(([key, value]: [string, any]) => {
+          if (value.timestamp + value.ttl > Date.now()) {
+            this.requestCache.set(key, value);
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error loading cache from storage:', error);
+    }
+  }
+
+  private saveCacheToStorage() {
+    if (typeof window === 'undefined') return;
+    
+    try {
+      const cacheData: any = {};
+      this.requestCache.forEach((value, key) => {
+        // Only save non-expired entries
+        if (value.timestamp + value.ttl > Date.now()) {
+          cacheData[key] = value;
+        }
+      });
+      localStorage.setItem('api_cache', JSON.stringify(cacheData));
+    } catch (error) {
+      console.error('Error saving cache to storage:', error);
+    }
+  }
+
+  private getCacheKey(endpoint: string, options?: RequestInit): string {
+    const method = options?.method || 'GET';
+    const body = options?.body ? JSON.stringify(options.body) : '';
+    return `${method}:${endpoint}:${body}`;
+  }
+
+  private getFromCache(cacheKey: string): any | null {
+    const cached = this.requestCache.get(cacheKey);
+    if (cached && cached.timestamp + cached.ttl > Date.now()) {
+      return cached.data;
+    }
+    
+    // Remove expired cache
+    if (cached) {
+      this.requestCache.delete(cacheKey);
+    }
+    
+    return null;
+  }
+
+  private setCache(cacheKey: string, data: any, ttl: number = 5 * 60 * 1000) {
+    this.requestCache.set(cacheKey, {
+      data,
+      timestamp: Date.now(),
+      ttl
+    });
+    
+    // Periodically save to localStorage
+    this.saveCacheToStorage();
+  }
+
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    cacheConfig: CacheConfig = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
+    const method = options.method || 'GET';
+    const cacheType = cacheConfig.type || 'api';
+    const cacheKey = cacheConfig.key || this.getCacheKey(endpoint, options);
+    
+    // For GET requests, check cache first using the new cache manager
+    if (method === 'GET') {
+      try {
+        const cachedData = await cacheManager.get<T>(cacheKey, cacheType);
+        if (cachedData) {
+          // If stale-while-revalidate is enabled, return cached data but fetch fresh data in background
+          if (cacheConfig.staleWhileRevalidate) {
+            this.fetchAndUpdateCache(url, options, cacheKey, cacheType, cacheConfig.ttl);
+          }
+          return cachedData;
+        }
+      } catch (error) {
+        console.warn('Cache retrieval failed:', error);
+      }
+    }
     
     // Check if we're offline
     if (typeof window !== 'undefined' && !navigator.onLine) {
-      // Try to get cached data for GET requests
-      if (!options.method || options.method === 'GET') {
-        const cachedData = this.getCachedData(endpoint);
-        if (cachedData) {
-          return cachedData;
+      // For GET requests, try to get any cached data (even expired)
+      if (method === 'GET') {
+        try {
+          const staleData = await cacheManager.get<T>(cacheKey, cacheType);
+          if (staleData) {
+            toast.info('Showing cached data (offline mode)');
+            return staleData;
+          }
+        } catch (error) {
+          console.warn('Offline cache retrieval failed:', error);
         }
       }
       
       throw new Error('You are offline. Please check your internet connection.');
     }
     
+    return this.fetchAndCache(url, options, cacheKey, cacheType, cacheConfig.ttl);
+  }
+
+  private async fetchAndCache<T>(
+    url: string, 
+    options: RequestInit, 
+    cacheKey: string, 
+    cacheType: string,
+    ttl?: number
+  ): Promise<T> {
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
@@ -78,10 +191,14 @@ class ApiClient {
             };
             const retryResponse = await fetch(url, config);
             if (retryResponse.ok) {
-              const data = retryResponse.json();
-              // Cache successful GET requests
+              const data = await retryResponse.json();
+              // Cache successful GET requests using the new cache manager
               if (!options.method || options.method === 'GET') {
-                this.setCachedData(endpoint, data);
+                try {
+                  await cacheManager.set(cacheKey, data, cacheType, { ttl });
+                } catch (error) {
+                  console.warn('Cache set failed:', error);
+                }
               }
               return data;
             }
@@ -100,25 +217,61 @@ class ApiClient {
 
       const data = await response.json();
       
-      // Cache successful GET requests
+      // Cache successful GET requests using the new cache manager
       if (!options.method || options.method === 'GET') {
-        this.setCachedData(endpoint, data);
+        try {
+          await cacheManager.set(cacheKey, data, cacheType, { ttl });
+        } catch (error) {
+          console.warn('Cache set failed:', error);
+        }
       }
       
       return data;
     } catch (error) {
       console.error('API request failed:', error);
       
-      // If network error and it's a GET request, try cache
+      // If network error and it's a GET request, try any cached data
       if (!options.method || options.method === 'GET') {
-        const cachedData = this.getCachedData(endpoint);
-        if (cachedData) {
-          toast.info('Showing cached data (offline mode)');
-          return cachedData;
+        try {
+          const staleData = await cacheManager.get<T>(cacheKey, cacheType);
+          if (staleData) {
+            toast.info('Showing cached data (network error)');
+            return staleData;
+          }
+        } catch (cacheError) {
+          console.warn('Fallback cache retrieval failed:', cacheError);
         }
       }
       
       throw error;
+    }
+  }
+
+  private async fetchAndUpdateCache(
+    url: string, 
+    options: RequestInit, 
+    cacheKey: string, 
+    cacheType: string,
+    ttl?: number
+  ) {
+    try {
+      const config: RequestInit = {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(this.token && { Authorization: `Bearer ${this.token}` }),
+          ...options.headers,
+        },
+        ...options,
+      };
+
+      const response = await fetch(url, config);
+      if (response.ok) {
+        const data = await response.json();
+        await cacheManager.set(cacheKey, data, cacheType, { ttl });
+      }
+    } catch (error) {
+      // Silently fail for background updates
+      console.warn('Background cache update failed:', error);
     }
   }
 
@@ -180,6 +333,34 @@ class ApiClient {
     return false;
   }
 
+  // Clear all caches using the new cache manager
+  clearCache() {
+    // Clear new cache manager
+    cacheManager.clear();
+    
+    // Clear legacy cache for backward compatibility
+    this.requestCache.clear();
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('api_cache');
+      // Clear individual caches too
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('cache_')) {
+          localStorage.removeItem(key);
+        }
+      });
+    }
+  }
+
+  // Get cache statistics
+  getCacheStats() {
+    return cacheManager.getStats();
+  }
+
+  // Clear specific cache type
+  async clearCacheType(type: string) {
+    await cacheManager.clear(type);
+  }
+
   // Auth endpoints
   async requestOtp(phone: string) {
     return this.request<{ message: string; expiresIn: number }>('/auth/request-otp', {
@@ -207,10 +388,26 @@ class ApiClient {
   }
 
   async getCurrentUser() {
-    return this.request<any>('/auth/me');
+    return this.request<any>('/auth/me', {}, { 
+      ttl: 10 * 60 * 1000, // Cache for 10 minutes
+      staleWhileRevalidate: true,
+      type: 'user'
+    });
   }
 
-  // Vehicle endpoints
+  async updateProfile(data: { name?: string; email?: string }) {
+    const result = await this.request<any>('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    
+    // Clear user cache after profile update
+    await cacheManager.delete('GET:/auth/me:', 'user');
+    
+    return result;
+  }
+
+  // Vehicle endpoints with enhanced caching
   async getVehicles(params?: {
     page?: number;
     limit?: number;
@@ -234,46 +431,88 @@ class ApiClient {
     }
     
     const query = searchParams.toString();
+    const endpoint = `/vehicles${query ? `?${query}` : ''}`;
+    
     return this.request<{
       data: any[];
       meta: { total: number; page: number; limit: number; totalPages: number };
-    }>(`/vehicles${query ? `?${query}` : ''}`);
-  }
-
-  async getVehicle(id: string) {
-    return this.request<any>(`/vehicles/${id}`);
-  }
-
-  async getMyVehicles() {
-    return this.request<any[]>('/vehicles/my-vehicles');
-  }
-
-  async createVehicle(data: any) {
-    return this.request<any>('/vehicles', {
-      method: 'POST',
-      body: JSON.stringify(data),
+    }>(endpoint, {}, { 
+      ttl: 5 * 60 * 1000, // Cache for 5 minutes
+      staleWhileRevalidate: true,
+      key: `vehicles:${query}`,
+      type: 'vehicles'
     });
   }
 
+  async getVehicle(id: string) {
+    return this.request<any>(`/vehicles/${id}`, {}, { 
+      ttl: 10 * 60 * 1000, // Cache for 10 minutes
+      staleWhileRevalidate: true,
+      type: 'vehicles'
+    });
+  }
+
+  async getMyVehicles() {
+    return this.request<any[]>('/vehicles/my-vehicles', {}, { 
+      ttl: 2 * 60 * 1000, // Cache for 2 minutes
+      staleWhileRevalidate: true,
+      type: 'vehicles'
+    });
+  }
+
+  async createVehicle(data: any) {
+    const result = await this.request<any>('/vehicles', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    
+    // Clear vehicles cache after creating
+    await this.clearVehiclesCaches();
+    
+    return result;
+  }
+
   async addVehicle(formData: FormData) {
-    return this.request<any>('/vehicles', {
+    const result = await this.request<any>('/vehicles', {
       method: 'POST',
       body: formData,
       headers: {}, // Remove Content-Type to let browser set it for FormData
     });
+    
+    // Clear vehicles cache after adding
+    await this.clearVehiclesCaches();
+    
+    return result;
   }
 
   async updateVehicle(id: string, data: any) {
-    return this.request<any>(`/vehicles/${id}`, {
+    const result = await this.request<any>(`/vehicles/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
+    
+    // Clear specific vehicle and vehicles list cache
+    await cacheManager.delete(`GET:/vehicles/${id}:`, 'vehicles');
+    await this.clearVehiclesCaches();
+    
+    return result;
   }
 
   async deleteVehicle(id: string) {
-    return this.request<void>(`/vehicles/${id}`, {
+    const result = await this.request<void>(`/vehicles/${id}`, {
       method: 'DELETE',
     });
+    
+    // Clear specific vehicle and vehicles list cache
+    await cacheManager.delete(`GET:/vehicles/${id}:`, 'vehicles');
+    await this.clearVehiclesCaches();
+    
+    return result;
+  }
+
+  private async clearVehiclesCaches() {
+    // Clear all vehicles-related caches using the new cache manager
+    await cacheManager.clear('vehicles');
   }
 
   // Contact form endpoint
@@ -290,61 +529,113 @@ class ApiClient {
     });
   }
 
-  // KYC endpoints
+  // KYC endpoints with caching
   async submitKyc(data: FormData) {
-    return this.request<{ message: string }>('/kyc', {
+    const result = await this.request<{ message: string }>('/kyc', {
       method: 'POST',
       body: data,
       headers: {}, // Remove Content-Type to let browser set it for FormData
     });
+    
+    // Clear KYC status cache after submission
+    await cacheManager.delete('GET:/kyc/status:', 'user');
+    
+    return result;
   }
 
   async getKycStatus() {
-    return this.request<{ status: string; documents?: any }>('/kyc/status');
+    return this.request<{ status: string; documents?: any }>('/kyc/status', {}, { 
+      ttl: 30 * 1000, // Cache for 30 seconds (KYC status changes frequently)
+      staleWhileRevalidate: true,
+      type: 'user'
+    });
   }
 
   // Admin KYC endpoints
   async getPendingKyc() {
-    return this.request<any[]>('/kyc/admin/pending');
+    return this.request<any[]>('/kyc/admin/pending', {}, { 
+      ttl: 60 * 1000, // Cache for 1 minute
+      staleWhileRevalidate: true,
+      type: 'user'
+    });
   }
 
   async approveKyc(userId: string) {
-    return this.request<{ message: string; user: any; status: string }>(`/kyc/admin/${userId}/approve`, {
+    const result = await this.request<{ message: string; user: any; status: string }>(`/kyc/admin/${userId}/approve`, {
       method: 'PUT',
     });
+    
+    // Clear KYC-related caches
+    await cacheManager.delete('GET:/kyc/admin/pending:', 'user');
+    
+    return result;
   }
 
   async rejectKyc(userId: string) {
-    return this.request<{ message: string; user: any; status: string }>(`/kyc/admin/${userId}/reject`, {
+    const result = await this.request<{ message: string; user: any; status: string }>(`/kyc/admin/${userId}/reject`, {
       method: 'PUT',
     });
+    
+    // Clear KYC-related caches
+    await cacheManager.delete('GET:/kyc/admin/pending:', 'user');
+    
+    return result;
   }
 
-  // Booking endpoints
+  // Booking endpoints with caching
   async createBooking(data: any) {
-    return this.request<any>('/bookings', {
+    const result = await this.request<any>('/bookings', {
       method: 'POST',
       body: JSON.stringify(data),
     });
+    
+    // Clear bookings cache after creating
+    await this.clearBookingsCaches();
+    
+    return result;
   }
 
   async getMyBookings() {
-    return this.request<any[]>('/bookings/my-bookings');
+    return this.request<any[]>('/bookings/my-bookings', {}, { 
+      ttl: 2 * 60 * 1000, // Cache for 2 minutes
+      staleWhileRevalidate: true,
+      type: 'user'
+    });
   }
 
   async getOwnerBookings() {
-    return this.request<any[]>('/bookings/owner-bookings');
+    return this.request<any[]>('/bookings/owner-bookings', {}, { 
+      ttl: 2 * 60 * 1000, // Cache for 2 minutes
+      staleWhileRevalidate: true,
+      type: 'user'
+    });
   }
 
   async getBooking(id: string) {
-    return this.request<any>(`/bookings/${id}`);
+    return this.request<any>(`/bookings/${id}`, {}, { 
+      ttl: 5 * 60 * 1000, // Cache for 5 minutes
+      staleWhileRevalidate: true,
+      type: 'user'
+    });
   }
 
   async updateBookingStatus(id: string, status: string) {
-    return this.request<any>(`/bookings/${id}/status`, {
+    const result = await this.request<any>(`/bookings/${id}/status`, {
       method: 'PUT',
       body: JSON.stringify({ status }),
     });
+    
+    // Clear specific booking and bookings list cache
+    await cacheManager.delete(`GET:/bookings/${id}:`, 'user');
+    await this.clearBookingsCaches();
+    
+    return result;
+  }
+
+  private async clearBookingsCaches() {
+    // Clear all bookings-related caches using the new cache manager
+    // Since bookings are user-specific, we clear the user cache type
+    await cacheManager.clear('user');
   }
 }
 
@@ -360,4 +651,21 @@ export const handleApiError = (error: any) => {
 // Helper function for success notifications
 export const handleApiSuccess = (message: string) => {
   toast.success(message);
+};
+
+// Helper function to clear all caches (useful for debugging or user logout)
+export const clearAllCaches = () => {
+  apiClient.clearCache();
+  toast.success('All caches cleared');
+};
+
+// Helper function to get cache statistics
+export const getCacheStatistics = () => {
+  return apiClient.getCacheStats();
+};
+
+// Helper function to clear specific cache type
+export const clearCacheType = async (type: string) => {
+  await apiClient.clearCacheType(type);
+  toast.success(`${type} cache cleared`);
 };

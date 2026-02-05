@@ -67,6 +67,24 @@ const categories = [
     gradient: "from-orange-500 to-red-500",
     bgGradient: "from-orange-50 to-red-50",
     vehicles: MOCK_VEHICLES.filter(v => v.category === "Compact")
+  },
+  {
+    id: "matatu",
+    name: "Matatu",
+    icon: Users,
+    description: "Group transportation for events and tours",
+    gradient: "from-yellow-500 to-orange-500",
+    bgGradient: "from-yellow-50 to-orange-50",
+    vehicles: MOCK_VEHICLES.filter(v => v.category === "Matatu")
+  },
+  {
+    id: "nganya",
+    name: "Nganya",
+    icon: Users,
+    description: "30-seater buses for large group transportation",
+    gradient: "from-indigo-500 to-purple-500",
+    bgGradient: "from-indigo-50 to-purple-50",
+    vehicles: MOCK_VEHICLES.filter(v => v.category === "Nganya")
   }
 ];
 
@@ -103,6 +121,7 @@ const destinations = [
 
 export default function ExplorePage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedOccasion, setSelectedOccasion] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isVisible, setIsVisible] = useState(false);
 
@@ -110,8 +129,31 @@ export default function ExplorePage() {
     setIsVisible(true);
   }, []);
 
+  // Filter vehicles based on occasion
+  const getVehiclesByOccasion = (occasion: string) => {
+    const occasionMapping: { [key: string]: string[] } = {
+      wedding: ["Luxury", "Sedan"],
+      funeral: ["Sedan", "SUV"],
+      graduation: ["Luxury", "Sedan"],
+      roadtrip: ["SUV"],
+      business: ["Luxury", "Sedan"],
+      airport: ["Sedan", "SUV", "Luxury"],
+      safari: ["SUV"],
+      family: ["SUV", "Matatu", "Nganya"]
+    };
+
+    if (!occasion) return MOCK_VEHICLES;
+    
+    const suitableCategories = occasionMapping[occasion] || [];
+    return MOCK_VEHICLES.filter(vehicle => 
+      suitableCategories.includes(vehicle.category)
+    );
+  };
+
   const filteredVehicles = selectedCategory 
     ? categories.find(c => c.id === selectedCategory)?.vehicles || []
+    : selectedOccasion 
+    ? getVehiclesByOccasion(selectedOccasion)
     : MOCK_VEHICLES;
 
   return (
@@ -164,13 +206,13 @@ export default function ExplorePage() {
             </p>
           </div>
 
-          {/* Search Bar */}
+          {/* Search Bar with Occasion Filter */}
           <div className={cn(
             "max-w-4xl mx-auto transition-all duration-1000 delay-600 transform",
             isVisible ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
           )}>
             <div className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl p-6 border border-white/20">
-              <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex flex-col md:flex-row gap-4 mb-4">
                 <div className="flex-1 relative">
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/60 w-5 h-5" />
                   <Input
@@ -184,6 +226,32 @@ export default function ExplorePage() {
                   <Filter className="mr-2 h-5 w-5" />
                   Filter
                 </Button>
+              </div>
+              
+              {/* Occasion Filter */}
+              <div className="border-t border-white/20 pt-4">
+                <label className="block text-sm font-semibold text-white/90 mb-3">
+                  <Heart className="inline w-4 h-4 mr-2" />
+                  Choose Your Occasion
+                </label>
+                <select 
+                  className="w-full h-12 bg-white/10 border border-white/20 text-white rounded-xl px-4 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  value={selectedOccasion}
+                  onChange={(e) => {
+                    setSelectedOccasion(e.target.value);
+                    setSelectedCategory(null); // Clear category filter when occasion is selected
+                  }}
+                >
+                  <option value="" className="bg-slate-800 text-white">All Occasions</option>
+                  <option value="wedding" className="bg-slate-800 text-white">Weddings</option>
+                  <option value="funeral" className="bg-slate-800 text-white">Funerals</option>
+                  <option value="graduation" className="bg-slate-800 text-white">Graduations</option>
+                  <option value="roadtrip" className="bg-slate-800 text-white">Road Trips</option>
+                  <option value="business" className="bg-slate-800 text-white">Business Events</option>
+                  <option value="airport" className="bg-slate-800 text-white">Airport Transfers</option>
+                  <option value="safari" className="bg-slate-800 text-white">Safari Adventures</option>
+                  <option value="family" className="bg-slate-800 text-white">Family Outings</option>
+                </select>
               </div>
             </div>
           </div>
