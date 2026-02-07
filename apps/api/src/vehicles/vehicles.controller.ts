@@ -72,4 +72,26 @@ export class VehiclesController {
   async updateAvailability(@Param('id') id: string, @CurrentUser() user: any, @Body('isAvailable') isAvailable: boolean) {
     return this.vehiclesService.updateAvailability(id, user.sub, isAvailable);
   }
+
+  // Admin endpoints
+  @Put(':id/approve')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async approveVehicle(@Param('id') id: string) {
+    return this.vehiclesService.updateStatus(id, 'APPROVED');
+  }
+
+  @Put(':id/reject')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async rejectVehicle(@Param('id') id: string, @Body('reason') reason?: string) {
+    return this.vehiclesService.updateStatus(id, 'REJECTED', reason);
+  }
+
+  @Get('admin/pending')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async getPendingVehicles() {
+    return this.vehiclesService.getPendingVehicles();
+  }
 }

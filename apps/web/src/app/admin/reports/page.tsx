@@ -133,29 +133,29 @@ export default function AdminReportsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50 to-orange-50">
       {/* Header */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-6">
+      <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 text-white shadow-lg">
+        <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 onClick={() => router.push("/admin/dashboard")}
-                className="p-2"
+                className="p-2 hover:bg-white/20 text-white"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-5 w-5" />
               </Button>
               <div>
-                <h1 className="text-3xl font-bold">Reports & Analytics</h1>
-                <p className="text-muted-foreground mt-1">
-                  Platform performance and business insights
+                <h1 className="text-4xl font-bold mb-2">Reports & Analytics</h1>
+                <p className="text-amber-100 text-lg">
+                  Platform performance and business insights 📊
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-40 bg-white/10 backdrop-blur-sm border-white/30 text-white">
                   <SelectValue placeholder="Select period" />
                 </SelectTrigger>
                 <SelectContent>
@@ -165,7 +165,10 @@ export default function AdminReportsPage() {
                   <SelectItem value="year">This Year</SelectItem>
                 </SelectContent>
               </Select>
-              <Button onClick={() => handleExportReport("comprehensive")}>
+              <Button 
+                onClick={() => handleExportReport("comprehensive")}
+                className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
+              >
                 <Download className="w-4 h-4 mr-2" />
                 Export Report
               </Button>
@@ -177,56 +180,64 @@ export default function AdminReportsPage() {
       <div className="container mx-auto px-4 py-8">
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card className="bg-gradient-to-br from-green-500 to-emerald-600 text-white border-0 shadow-lg hover:shadow-xl transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-green-100">Total Revenue</CardTitle>
+              <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                <DollarSign className="h-5 w-5 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">KSh {reportsData.revenue.current.toLocaleString()}</div>
-              <div className="flex items-center text-xs text-green-600">
+              <div className="text-3xl font-bold mb-1">KSh {reportsData.revenue.current.toLocaleString()}</div>
+              <div className="flex items-center text-xs text-green-100">
                 <TrendingUp className="w-3 h-3 mr-1" />
                 +{reportsData.revenue.growth}% from last month
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white border-0 shadow-lg hover:shadow-xl transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-blue-100">Total Bookings</CardTitle>
+              <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                <Calendar className="h-5 w-5 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{reportsData.bookings.total}</div>
-              <div className="flex items-center text-xs text-green-600">
+              <div className="text-3xl font-bold mb-1">{reportsData.bookings.total}</div>
+              <div className="flex items-center text-xs text-blue-100">
                 <TrendingUp className="w-3 h-3 mr-1" />
                 +{reportsData.bookings.growth}% from last month
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gradient-to-br from-purple-500 to-pink-600 text-white border-0 shadow-lg hover:shadow-xl transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-purple-100">Active Users</CardTitle>
+              <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                <Users className="h-5 w-5 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{reportsData.users.active.toLocaleString()}</div>
-              <div className="flex items-center text-xs text-green-600">
+              <div className="text-3xl font-bold mb-1">{reportsData.users.active.toLocaleString()}</div>
+              <div className="flex items-center text-xs text-purple-100">
                 <TrendingUp className="w-3 h-3 mr-1" />
                 +{reportsData.users.growth}% from last month
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gradient-to-br from-orange-500 to-red-600 text-white border-0 shadow-lg hover:shadow-xl transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Vehicle Utilization</CardTitle>
-              <Car className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-orange-100">Vehicle Utilization</CardTitle>
+              <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                <Car className="h-5 w-5 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{reportsData.vehicles.utilization}%</div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-3xl font-bold mb-1">{reportsData.vehicles.utilization}%</div>
+              <div className="text-xs text-orange-100">
                 {reportsData.vehicles.active} of {reportsData.vehicles.total} vehicles active
               </div>
             </CardContent>
@@ -235,13 +246,13 @@ export default function AdminReportsPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Revenue Chart Placeholder */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-t-lg">
+              <CardTitle className="flex items-center space-x-2 text-amber-900">
                 <BarChart3 className="h-5 w-5" />
                 <span>Revenue Trend</span>
               </CardTitle>
-              <CardDescription>Monthly revenue over the last 6 months</CardDescription>
+              <CardDescription className="text-amber-700">Monthly revenue over the last 6 months</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
@@ -255,10 +266,10 @@ export default function AdminReportsPage() {
           </Card>
 
           {/* Booking Status */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Booking Status Breakdown</CardTitle>
-              <CardDescription>Current booking distribution</CardDescription>
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-t-lg">
+              <CardTitle className="text-amber-900">Booking Status Breakdown</CardTitle>
+              <CardDescription className="text-amber-700">Current booking distribution</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -305,11 +316,11 @@ export default function AdminReportsPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Top Performing Vehicles */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-amber-50 to-orange-50 rounded-t-lg">
               <div>
-                <CardTitle>Top Performing Vehicles</CardTitle>
-                <CardDescription>Vehicles with highest bookings and revenue</CardDescription>
+                <CardTitle className="text-amber-900">Top Performing Vehicles</CardTitle>
+                <CardDescription className="text-amber-700">Vehicles with highest bookings and revenue</CardDescription>
               </div>
               <Button variant="outline" size="sm" onClick={() => handleExportReport("vehicles")}>
                 <Download className="w-3 h-3 mr-1" />
@@ -341,11 +352,11 @@ export default function AdminReportsPage() {
           </Card>
 
           {/* Top Performing Owners */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-amber-50 to-orange-50 rounded-t-lg">
               <div>
-                <CardTitle>Top Performing Owners</CardTitle>
-                <CardDescription>Owners with highest revenue generation</CardDescription>
+                <CardTitle className="text-amber-900">Top Performing Owners</CardTitle>
+                <CardDescription className="text-amber-700">Owners with highest revenue generation</CardDescription>
               </div>
               <Button variant="outline" size="sm" onClick={() => handleExportReport("owners")}>
                 <Download className="w-3 h-3 mr-1" />

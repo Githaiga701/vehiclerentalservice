@@ -297,4 +297,43 @@ export class VehiclesService {
       data: { isAvailable },
     });
   }
+
+  // Admin methods
+  async updateStatus(id: string, status: string, reason?: string) {
+    const vehicle = await this.prisma.vehicle.findUnique({ where: { id } });
+
+    if (!vehicle) {
+      throw new NotFoundException('Vehicle not found');
+    }
+
+    const updatedVehicle = await this.prisma.vehicle.update({
+      where: { id },
+      data: { status },
+      include: {
+        owner: {
+          select: { id: true, name: true, phone: true, email: true },
+        },
+        driver: true,
+      },
+    });
+
+    // TODO: Send notification to owner about approval/rejection
+    // You could integrate email/SMS service here
+    console.log(`Vehicle ${id} status updated to ${status}${reason ? ` - Reason: ${reason}` : ''}`);
+
+    return updatedVehicle;
+  }
+
+  async getPendingVehicles() {
+    return this.prisma.vehicle.findMany({
+      where: { status: 'PENDING' },
+      include: {
+        owner: {
+          select: { id: true, name: true, phone: true, email: true },
+        },
+        driver: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
 }

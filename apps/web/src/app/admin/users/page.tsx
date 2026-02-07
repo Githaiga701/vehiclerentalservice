@@ -201,27 +201,27 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50">
       {/* Header */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-6">
+      <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white shadow-lg">
+        <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 onClick={() => router.push("/admin/dashboard")}
-                className="p-2"
+                className="p-2 hover:bg-white/20 text-white"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-5 w-5" />
               </Button>
               <div>
-                <h1 className="text-3xl font-bold">Manage Users</h1>
-                <p className="text-muted-foreground mt-1">
-                  View and manage all platform users
+                <h1 className="text-4xl font-bold mb-2">Manage Users</h1>
+                <p className="text-purple-100 text-lg">
+                  View and manage all platform users 👥
                 </p>
               </div>
             </div>
-            <Badge variant="secondary" className="px-3 py-1">
+            <Badge className="px-4 py-2 bg-white/20 backdrop-blur-sm border-white/30 text-white text-base">
               {filteredUsers.length} users
             </Badge>
           </div>
@@ -230,9 +230,9 @@ export default function AdminUsersPage() {
 
       <div className="container mx-auto px-4 py-8">
         {/* Filters */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
+        <Card className="mb-6 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-t-lg">
+            <CardTitle className="flex items-center space-x-2 text-purple-900">
               <Filter className="h-5 w-5" />
               <span>Filters</span>
             </CardTitle>
@@ -297,7 +297,7 @@ export default function AdminUsersPage() {
             </Card>
           ) : (
             filteredUsers.map((userData) => (
-              <Card key={userData.id} className="overflow-hidden">
+              <Card key={userData.id} className="overflow-hidden shadow-md hover:shadow-xl transition-all border-l-4 border-l-purple-500 bg-white/90 backdrop-blur-sm">
                 <CardContent className="p-6">
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                     {/* Left side - User info */}

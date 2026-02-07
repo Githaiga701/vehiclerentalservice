@@ -23,96 +23,46 @@ import {
   Eye,
   Loader2,
   AlertCircle,
-  ArrowLeft
+  ArrowLeft,
+  RefreshCw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { toast } from "sonner";
+import apiClient from "@/lib/api-client";
 
-// Mock vehicles data
-const mockVehicles = [
-  {
-    id: "v1",
-    title: "Toyota Fortuner 2023",
-    category: "SUV",
-    dailyPrice: 8500,
-    location: "Nairobi - Westlands",
-    seats: 7,
-    transmission: "Automatic",
-    fuelType: "Diesel",
-    year: 2023,
-    isAvailable: true,
-    isApproved: true,
-    ownerName: "Mary Wanjiku",
-    ownerPhone: "+254723456789",
-    images: ["https://images.unsplash.com/photo-1742697167580-af91e3ead35e?auto=format&fit=crop&q=80&w=400"],
-    createdAt: "2026-01-15",
-    totalBookings: 12,
-  },
-  {
-    id: "v2",
-    title: "Nissan X-Trail 2022",
-    category: "SUV",
-    dailyPrice: 6500,
-    location: "Mombasa - CBD",
-    seats: 5,
-    transmission: "Automatic",
-    fuelType: "Petrol",
-    year: 2022,
-    isAvailable: true,
-    isApproved: false,
-    ownerName: "John Kamau",
-    ownerPhone: "+254734567890",
-    images: ["https://images.unsplash.com/photo-1551817280-6d59c77ce1b8?auto=format&fit=crop&q=80&w=400"],
-    createdAt: "2026-01-20",
-    totalBookings: 0,
-  },
-  {
-    id: "v3",
-    title: "Toyota Prado 2024",
-    category: "SUV",
-    dailyPrice: 9500,
-    location: "Kisumu - Town",
-    seats: 7,
-    transmission: "Automatic",
-    fuelType: "Diesel",
-    year: 2024,
-    isAvailable: false,
-    isApproved: true,
-    ownerName: "Sarah Njeri",
-    ownerPhone: "+254745678901",
-    images: ["https://images.unsplash.com/photo-1533473359331-35acde7260c9?auto=format&fit=crop&q=80&w=400"],
-    createdAt: "2026-01-10",
-    totalBookings: 8,
-  },
-  {
-    id: "v4",
-    title: "Honda CR-V 2021",
-    category: "SUV",
-    dailyPrice: 6000,
-    location: "Nakuru - CBD",
-    seats: 5,
-    transmission: "Automatic",
-    fuelType: "Petrol",
-    year: 2021,
-    isAvailable: true,
-    isApproved: true,
-    ownerName: "Peter Mwangi",
-    ownerPhone: "+254756789012",
-    images: ["https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=400"],
-    createdAt: "2026-01-25",
-    totalBookings: 5,
-  },
-];
+interface Vehicle {
+  id: string;
+  title: string;
+  category: string;
+  dailyPrice: number;
+  location: string;
+  seats: number;
+  transmission: string;
+  fuelType: string;
+  year: number;
+  isAvailable: boolean;
+  status: string;
+  owner: {
+    id: string;
+    name: string;
+    phone: string;
+  };
+  images: string;
+  createdAt: string;
+  bookings?: any[];
+}
 
 export default function AdminVehiclesPage() {
   const { user, isAuthenticated, isLoading, isAdmin } = useAuth();
   const router = useRouter();
-  const [vehicles, setVehicles] = useState(mockVehicles);
-  const [filteredVehicles, setFilteredVehicles] = useState(mockVehicles);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [filteredVehicles, setFilteredVehicles] = useState<Vehicle[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -122,13 +72,25 @@ export default function AdminVehiclesPage() {
     }
   }, [isAuthenticated, isLoading, isAdmin, router]);
 
-  useEffect(() => {
-    // Simulate loading data
-    const timer = setTimeout(() => {
+  const fetchVehicles = async () => {
+    try {
+      setIsLoadingData(true);
+      const response = await apiClient.get('/vehicles');
+      setVehicles(response.data.data || response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch vehicles:', error);
+      toast.error('Failed to load vehicles');
+    } finally {
       setIsLoadingData(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated && isAdmin) {
+      fetchVehicles();
+    }
+  }, [isAuthenticated, isAdmin]);
 
   useEffect(() => {
     // Filter vehicles based on search, status, and category
@@ -137,16 +99,18 @@ export default function AdminVehiclesPage() {
     if (searchQuery) {
       filtered = filtered.filter(vehicle =>
         vehicle.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        vehicle.ownerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        vehicle.owner.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         vehicle.location.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     if (statusFilter !== "all") {
       if (statusFilter === "approved") {
-        filtered = filtered.filter(vehicle => vehicle.isApproved);
+        filtered = filtered.filter(vehicle => vehicle.status === "APPROVED");
       } else if (statusFilter === "pending") {
-        filtered = filtered.filter(vehicle => !vehicle.isApproved);
+        filtered = filtered.filter(vehicle => vehicle.status === "PENDING");
+      } else if (statusFilter === "rejected") {
+        filtered = filtered.filter(vehicle => vehicle.status === "REJECTED");
       } else if (statusFilter === "available") {
         filtered = filtered.filter(vehicle => vehicle.isAvailable);
       } else if (statusFilter === "unavailable") {
@@ -161,20 +125,55 @@ export default function AdminVehiclesPage() {
     setFilteredVehicles(filtered);
   }, [searchQuery, statusFilter, categoryFilter, vehicles]);
 
-  const handleApprovalToggle = (vehicleId: string) => {
-    setVehicles(prev =>
-      prev.map(vehicle =>
-        vehicle.id === vehicleId ? { ...vehicle, isApproved: !vehicle.isApproved } : vehicle
-      )
-    );
+  const handleApprove = async (vehicleId: string) => {
+    try {
+      await apiClient.put(`/vehicles/${vehicleId}/approve`);
+      toast.success('Vehicle approved successfully');
+      fetchVehicles();
+    } catch (error) {
+      console.error('Failed to approve vehicle:', error);
+      toast.error('Failed to approve vehicle');
+    }
   };
 
-  const handleAvailabilityToggle = (vehicleId: string) => {
-    setVehicles(prev =>
-      prev.map(vehicle =>
-        vehicle.id === vehicleId ? { ...vehicle, isAvailable: !vehicle.isAvailable } : vehicle
-      )
-    );
+  const handleReject = async (vehicleId: string) => {
+    try {
+      await apiClient.put(`/vehicles/${vehicleId}/reject`, {
+        reason: 'Does not meet platform standards'
+      });
+      toast.success('Vehicle rejected');
+      fetchVehicles();
+    } catch (error) {
+      console.error('Failed to reject vehicle:', error);
+      toast.error('Failed to reject vehicle');
+    }
+  };
+
+  const handleAvailabilityToggle = async (vehicleId: string, currentStatus: boolean) => {
+    try {
+      await apiClient.put(`/vehicles/${vehicleId}/availability`, {
+        isAvailable: !currentStatus
+      });
+      toast.success(`Vehicle ${!currentStatus ? 'enabled' : 'disabled'} successfully`);
+      fetchVehicles();
+    } catch (error) {
+      console.error('Failed to update availability:', error);
+      toast.error('Failed to update availability');
+    }
+  };
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    fetchVehicles();
+  };
+
+  const parseImages = (imagesStr: string): string[] => {
+    try {
+      const parsed = JSON.parse(imagesStr);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
   };
 
   if (isLoading || isLoadingData) {
@@ -205,39 +204,56 @@ export default function AdminVehiclesPage() {
     );
   }
 
+  const pendingCount = vehicles.filter(v => v.status === "PENDING").length;
+
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50 to-teal-50">
       {/* Header */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-6">
+      <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white shadow-lg">
+        <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 onClick={() => router.push("/admin/dashboard")}
-                className="p-2"
+                className="p-2 hover:bg-white/20 text-white"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-5 w-5" />
               </Button>
               <div>
-                <h1 className="text-3xl font-bold">Manage Vehicles</h1>
-                <p className="text-muted-foreground mt-1">
-                  View and manage all platform vehicles
+                <h1 className="text-4xl font-bold mb-2">Manage Vehicles</h1>
+                <p className="text-emerald-100 text-lg">
+                  View and manage all platform vehicles 🚗
                 </p>
               </div>
             </div>
-            <Badge variant="secondary" className="px-3 py-1">
-              {filteredVehicles.length} vehicles
-            </Badge>
+            <div className="flex items-center space-x-4">
+              {pendingCount > 0 && (
+                <Badge className="px-4 py-2 bg-yellow-500 text-white text-base">
+                  {pendingCount} pending approval
+                </Badge>
+              )}
+              <Badge className="px-4 py-2 bg-white/20 backdrop-blur-sm border-white/30 text-white text-base">
+                {filteredVehicles.length} vehicles
+              </Badge>
+              <Button
+                variant="ghost"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="p-2 hover:bg-white/20 text-white"
+              >
+                <RefreshCw className={cn("h-5 w-5", isRefreshing && "animate-spin")} />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-8">
         {/* Filters */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
+        <Card className="mb-6 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-t-lg">
+            <CardTitle className="flex items-center space-x-2 text-emerald-900">
               <Filter className="h-5 w-5" />
               <span>Filters</span>
             </CardTitle>
@@ -262,8 +278,9 @@ export default function AdminVehiclesPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
                     <SelectItem value="pending">Pending Approval</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
                     <SelectItem value="available">Available</SelectItem>
                     <SelectItem value="unavailable">Unavailable</SelectItem>
                   </SelectContent>
@@ -303,15 +320,20 @@ export default function AdminVehiclesPage() {
               </CardContent>
             </Card>
           ) : (
-            filteredVehicles.map((vehicle) => (
-              <Card key={vehicle.id} className="overflow-hidden">
+            filteredVehicles.map((vehicle) => {
+              const images = parseImages(vehicle.images);
+              const imageUrl = images[0] || 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=400';
+              const totalBookings = vehicle.bookings?.length || 0;
+              
+              return (
+              <Card key={vehicle.id} className="overflow-hidden shadow-md hover:shadow-xl transition-all border-l-4 border-l-emerald-500 bg-white/90 backdrop-blur-sm">
                 <CardContent className="p-6">
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                     {/* Left side - Vehicle info */}
                     <div className="flex items-start space-x-4 flex-1">
                       <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-gray-100">
                         <Image
-                          src={vehicle.images[0]}
+                          src={imageUrl}
                           alt={vehicle.title}
                           fill
                           className="object-cover"
@@ -320,24 +342,26 @@ export default function AdminVehiclesPage() {
                       
                       <div className="flex-1 space-y-3">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-3 flex-wrap gap-2">
                             <h3 className="text-lg font-semibold">{vehicle.title}</h3>
                             <Badge variant="outline" className="text-xs">
                               {vehicle.category}
                             </Badge>
                             <Badge className={cn(
                               "text-xs",
-                              vehicle.isApproved 
+                              vehicle.status === "APPROVED"
                                 ? "bg-green-100 text-green-800 border-green-200" 
+                                : vehicle.status === "REJECTED"
+                                ? "bg-red-100 text-red-800 border-red-200"
                                 : "bg-yellow-100 text-yellow-800 border-yellow-200"
                             )}>
-                              {vehicle.isApproved ? "Approved" : "Pending"}
+                              {vehicle.status}
                             </Badge>
                             <Badge className={cn(
                               "text-xs",
                               vehicle.isAvailable 
                                 ? "bg-blue-100 text-blue-800 border-blue-200" 
-                                : "bg-red-100 text-red-800 border-red-200"
+                                : "bg-gray-100 text-gray-800 border-gray-200"
                             )}>
                               {vehicle.isAvailable ? "Available" : "Unavailable"}
                             </Badge>
@@ -347,7 +371,7 @@ export default function AdminVehiclesPage() {
                               KSh {vehicle.dailyPrice.toLocaleString()}/day
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {vehicle.totalBookings} bookings
+                              {totalBookings} bookings
                             </p>
                           </div>
                         </div>
@@ -372,31 +396,42 @@ export default function AdminVehiclesPage() {
                         </div>
 
                         <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                          <span>👤 Owner: {vehicle.ownerName}</span>
-                          <span>📞 {vehicle.ownerPhone}</span>
-                          <span>📅 Added {vehicle.createdAt}</span>
+                          <span>👤 Owner: {vehicle.owner.name}</span>
+                          <span>📞 {vehicle.owner.phone}</span>
+                          <span>📅 Added {new Date(vehicle.createdAt).toLocaleDateString()}</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Right side - Actions */}
                     <div className="flex flex-col space-y-2 lg:ml-6">
-                      {!vehicle.isApproved && (
-                        <Button
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700"
-                          onClick={() => handleApprovalToggle(vehicle.id)}
-                        >
-                          <CheckCircle2 className="w-3 h-3 mr-1" />
-                          Approve
-                        </Button>
+                      {vehicle.status === "PENDING" && (
+                        <div className="flex flex-col space-y-2">
+                          <Button
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700"
+                            onClick={() => handleApprove(vehicle.id)}
+                          >
+                            <CheckCircle2 className="w-3 h-3 mr-1" />
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-red-600 text-red-600 hover:bg-red-50"
+                            onClick={() => handleReject(vehicle.id)}
+                          >
+                            <XCircle className="w-3 h-3 mr-1" />
+                            Reject
+                          </Button>
+                        </div>
                       )}
                       
-                      <div className="flex space-x-2">
+                      {vehicle.status === "APPROVED" && (
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleAvailabilityToggle(vehicle.id)}
+                          onClick={() => handleAvailabilityToggle(vehicle.id, vehicle.isAvailable)}
                           className={vehicle.isAvailable ? "border-red-600 text-red-600 hover:bg-red-50" : "border-green-600 text-green-600 hover:bg-green-50"}
                         >
                           {vehicle.isAvailable ? (
@@ -411,17 +446,18 @@ export default function AdminVehiclesPage() {
                             </>
                           )}
                         </Button>
-                        
-                        <Button size="sm" variant="outline" onClick={() => router.push(`/vehicles/${vehicle.id}`)}>
-                          <Eye className="w-3 h-3 mr-1" />
-                          View
-                        </Button>
-                      </div>
+                      )}
+                      
+                      <Button size="sm" variant="outline" onClick={() => router.push(`/vehicles/${vehicle.id}`)}>
+                        <Eye className="w-3 h-3 mr-1" />
+                        View
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            ))
+            );
+            })
           )}
         </div>
       </div>

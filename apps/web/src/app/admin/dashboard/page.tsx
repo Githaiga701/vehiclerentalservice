@@ -122,23 +122,27 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-6">
+      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white shadow-lg">
+        <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-              <p className="text-muted-foreground mt-1">
-                Welcome back, {user?.name || "Administrator"}
+              <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
+              <p className="text-indigo-100 text-lg">
+                Welcome back, {user?.name || "Administrator"} 👋
               </p>
             </div>
             <div className="flex items-center space-x-4">
-              <Badge variant="secondary" className="px-3 py-1">
-                <Settings className="w-4 h-4 mr-1" />
+              <Badge className="px-4 py-2 bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30">
+                <Settings className="w-4 h-4 mr-2" />
                 Admin Panel
               </Badge>
-              <Button variant="outline" onClick={() => router.push("/")}>
+              <Button 
+                variant="outline" 
+                onClick={() => router.push("/")}
+                className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
+              >
                 View Site
               </Button>
             </div>
@@ -149,54 +153,62 @@ export default function AdminDashboard() {
       <div className="container mx-auto px-4 py-8">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0 shadow-lg hover:shadow-xl transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-blue-100">Total Users</CardTitle>
+              <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                <Users className="h-5 w-5 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{dashboardStats.totalUsers.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
-                +12% from last month
+              <div className="text-3xl font-bold mb-1">{dashboardStats.totalUsers.toLocaleString()}</div>
+              <p className="text-xs text-blue-100 flex items-center">
+                <span className="text-green-300 mr-1">↗ +12%</span> from last month
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Vehicles</CardTitle>
-              <Car className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-purple-100">Total Vehicles</CardTitle>
+              <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                <Car className="h-5 w-5 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{dashboardStats.totalVehicles}</div>
-              <p className="text-xs text-muted-foreground">
-                +3 new this week
+              <div className="text-3xl font-bold mb-1">{dashboardStats.totalVehicles}</div>
+              <p className="text-xs text-purple-100 flex items-center">
+                <span className="text-green-300 mr-1">+3</span> new this week
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white border-0 shadow-lg hover:shadow-xl transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Bookings</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-orange-100">Active Bookings</CardTitle>
+              <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                <Calendar className="h-5 w-5 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{dashboardStats.activeBookings}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-3xl font-bold mb-1">{dashboardStats.activeBookings}</div>
+              <p className="text-xs text-orange-100">
                 {dashboardStats.pendingKyc} pending approval
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0 shadow-lg hover:shadow-xl transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-green-100">Monthly Revenue</CardTitle>
+              <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                <DollarSign className="h-5 w-5 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">KSh {dashboardStats.monthlyRevenue.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
-                +8% from last month
+              <div className="text-3xl font-bold mb-1">KSh {dashboardStats.monthlyRevenue.toLocaleString()}</div>
+              <p className="text-xs text-green-100 flex items-center">
+                <span className="text-green-200 mr-1">↗ +8%</span> from last month
               </p>
             </CardContent>
           </Card>
@@ -205,17 +217,16 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Quick Actions */}
           <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-                <CardDescription>
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-t-lg">
+                <CardTitle className="text-indigo-900">Quick Actions</CardTitle>
+                <CardDescription className="text-indigo-600">
                   Common administrative tasks
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 pt-6">
                 <Button 
-                  className="w-full justify-start" 
-                  variant="outline"
+                  className="w-full justify-start bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-md" 
                   onClick={() => router.push("/kyc-approvals")}
                 >
                   <CheckCircle2 className="mr-2 h-4 w-4" />
@@ -223,8 +234,7 @@ export default function AdminDashboard() {
                 </Button>
                 
                 <Button 
-                  className="w-full justify-start" 
-                  variant="outline"
+                  className="w-full justify-start bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md" 
                   onClick={() => router.push("/admin/bookings")}
                 >
                   <Calendar className="mr-2 h-4 w-4" />
@@ -232,8 +242,7 @@ export default function AdminDashboard() {
                 </Button>
                 
                 <Button 
-                  className="w-full justify-start" 
-                  variant="outline"
+                  className="w-full justify-start bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-md" 
                   onClick={() => router.push("/admin/vehicles")}
                 >
                   <Car className="mr-2 h-4 w-4" />
@@ -241,8 +250,7 @@ export default function AdminDashboard() {
                 </Button>
                 
                 <Button 
-                  className="w-full justify-start" 
-                  variant="outline"
+                  className="w-full justify-start bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-md" 
                   onClick={() => router.push("/admin/users")}
                 >
                   <Users className="mr-2 h-4 w-4" />
@@ -250,8 +258,7 @@ export default function AdminDashboard() {
                 </Button>
                 
                 <Button 
-                  className="w-full justify-start" 
-                  variant="outline"
+                  className="w-full justify-start bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white shadow-md" 
                   onClick={() => router.push("/admin/reports")}
                 >
                   <BarChart3 className="mr-2 h-4 w-4" />
@@ -263,10 +270,10 @@ export default function AdminDashboard() {
 
           {/* Recent Activities */}
           <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Activities</CardTitle>
-                <CardDescription>
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-t-lg">
+                <CardTitle className="text-indigo-900">Recent Activities</CardTitle>
+                <CardDescription className="text-indigo-600">
                   Latest platform activities requiring attention
                 </CardDescription>
               </CardHeader>

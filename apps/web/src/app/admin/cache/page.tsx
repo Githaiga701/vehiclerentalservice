@@ -76,21 +76,21 @@ export default function CachePage() {
   const successRate = totalTests > 0 ? (passedTests / totalTests) * 100 : 0;
 
   return (
-    <div className="container mx-auto py-8 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Cache Management</h1>
-        <p className="text-muted-foreground">
+    <div className="container mx-auto py-8 space-y-8 min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50 to-blue-50">
+      <div className="bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 text-white rounded-2xl shadow-lg p-8">
+        <h1 className="text-4xl font-bold mb-2">Cache Management 🚀</h1>
+        <p className="text-cyan-100 text-lg">
           Monitor cache performance, run diagnostics, and manage cache data
         </p>
       </div>
 
       <Tabs defaultValue="manager" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="manager" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-2 bg-white/80 backdrop-blur-sm shadow-md">
+          <TabsTrigger value="manager" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-white">
             <Database className="h-4 w-4" />
             Cache Manager
           </TabsTrigger>
-          <TabsTrigger value="tests" className="flex items-center gap-2">
+          <TabsTrigger value="tests" className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-white">
             <TestTube className="h-4 w-4" />
             Cache Tests
           </TabsTrigger>
@@ -102,13 +102,13 @@ export default function CachePage() {
 
         <TabsContent value="tests" className="space-y-6">
           {/* Test Controls */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-cyan-900">
                 <TestTube className="h-5 w-5" />
                 Cache Test Suite
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-cyan-700">
                 Run comprehensive tests to validate cache functionality and performance
               </CardDescription>
             </CardHeader>
@@ -146,38 +146,44 @@ export default function CachePage() {
           {/* Test Results Summary */}
           {hasRunTests && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardContent className="p-4">
+              <Card className="bg-gradient-to-br from-green-500 to-emerald-600 text-white border-0 shadow-lg">
+                <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Tests Passed</p>
-                      <p className="text-2xl font-bold text-green-600">{passedTests}</p>
+                      <p className="text-sm font-medium text-green-100">Tests Passed</p>
+                      <p className="text-4xl font-bold mt-2">{passedTests}</p>
                     </div>
-                    <CheckCircle className="h-8 w-8 text-green-600" />
+                    <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
+                      <CheckCircle className="h-10 w-10 text-white" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardContent className="p-4">
+              <Card className="bg-gradient-to-br from-red-500 to-rose-600 text-white border-0 shadow-lg">
+                <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Tests Failed</p>
-                      <p className="text-2xl font-bold text-red-600">{totalTests - passedTests}</p>
+                      <p className="text-sm font-medium text-red-100">Tests Failed</p>
+                      <p className="text-4xl font-bold mt-2">{totalTests - passedTests}</p>
                     </div>
-                    <XCircle className="h-8 w-8 text-red-600" />
+                    <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
+                      <XCircle className="h-10 w-10 text-white" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardContent className="p-4">
+              <Card className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white border-0 shadow-lg">
+                <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Success Rate</p>
-                      <p className="text-2xl font-bold">{successRate.toFixed(1)}%</p>
+                      <p className="text-sm font-medium text-blue-100">Success Rate</p>
+                      <p className="text-4xl font-bold mt-2">{successRate.toFixed(1)}%</p>
                     </div>
-                    <TestTube className="h-8 w-8 text-blue-600" />
+                    <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
+                      <TestTube className="h-10 w-10 text-white" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -186,10 +192,10 @@ export default function CachePage() {
 
           {/* Test Results */}
           {hasRunTests && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Test Results</CardTitle>
-                <CardDescription>
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-t-lg">
+                <CardTitle className="text-cyan-900">Test Results</CardTitle>
+                <CardDescription className="text-cyan-700">
                   Detailed results for each cache test
                 </CardDescription>
               </CardHeader>
@@ -238,10 +244,10 @@ export default function CachePage() {
           )}
 
           {/* Test Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Test Information</CardTitle>
-              <CardDescription>
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-t-lg">
+              <CardTitle className="text-cyan-900">Test Information</CardTitle>
+              <CardDescription className="text-cyan-700">
                 What the cache tests validate
               </CardDescription>
             </CardHeader>
