@@ -11,6 +11,7 @@ type User = {
   email?: string;
   phone?: string;
   avatar?: string;
+  profilePicture?: string;
   role?: "OWNER" | "RENTER" | "ADMIN";
   kycStatus?: "PENDING" | "APPROVED" | "REJECTED" | null;
   trustScore?: {

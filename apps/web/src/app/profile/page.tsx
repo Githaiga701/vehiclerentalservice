@@ -28,6 +28,8 @@ import {
 import { toast } from "sonner";
 import Image from "next/image";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 export default function ProfilePage() {
   const { user, isAuthenticated, isLoading, refreshUser } = useAuth();
   const router = useRouter();
@@ -102,7 +104,7 @@ export default function ProfilePage() {
         const formData = new FormData();
         formData.append('profilePicture', selectedImage);
 
-        const response = await fetch('http://localhost:3001/auth/profile-picture', {
+        const response = await fetch(`${API_BASE_URL}/auth/profile-picture`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
@@ -149,7 +151,7 @@ export default function ProfilePage() {
       const formData = new FormData();
       formData.append('profilePicture', file);
 
-      const response = await fetch('http://localhost:3001/auth/profile-picture', {
+      const response = await fetch(`${API_BASE_URL}/auth/profile-picture`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
@@ -240,7 +242,7 @@ export default function ProfilePage() {
                     <Avatar className="h-20 w-20">
                       {user.profilePicture ? (
                         <Image
-                          src={`http://localhost:3001${user.profilePicture}`}
+                          src={`${API_BASE_URL}${user.profilePicture}`}
                           alt={user.name || 'Profile'}
                           fill
                           className="object-cover"
@@ -464,7 +466,7 @@ export default function ProfilePage() {
                     />
                   ) : user.profilePicture ? (
                     <Image
-                      src={`http://localhost:3001${user.profilePicture}`}
+                      src={`${API_BASE_URL}${user.profilePicture}`}
                       alt={user.name || 'Profile'}
                       fill
                       className="object-cover"

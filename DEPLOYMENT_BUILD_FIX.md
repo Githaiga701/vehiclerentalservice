@@ -209,6 +209,60 @@ Expected: Build succeeds without errors
 
 ---
 
+## Additional Fix: Profile Picture Type Error
+
+### Problem:
+TypeScript build error on deployment:
+```
+Type error: Property 'profilePicture' does not exist on type 'User'
+./src/app/profile/page.tsx:241:29
+```
+
+### Root Cause:
+The User type definition in `auth-context.tsx` didn't include the `profilePicture` field that was added to the backend User model.
+
+### Solution:
+Added `profilePicture?: string;` to the User type:
+
+**File:** `apps/web/src/lib/auth-context.tsx`
+
+**Before:**
+```typescript
+type User = {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  avatar?: string;
+  role?: "OWNER" | "RENTER" | "ADMIN";
+  kycStatus?: "PENDING" | "APPROVED" | "REJECTED" | null;
+  trustScore?: {
+    score: number;
+    kycCompleted: boolean;
+  };
+} | null;
+```
+
+**After:**
+```typescript
+type User = {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  avatar?: string;
+  profilePicture?: string;  // ✅ Added this field
+  role?: "OWNER" | "RENTER" | "ADMIN";
+  kycStatus?: "PENDING" | "APPROVED" | "REJECTED" | null;
+  trustScore?: {
+    score: number;
+    kycCompleted: boolean;
+  };
+} | null;
+```
+
+---
+
 ## Files Modified
 
 1. ✅ `apps/web/src/app/admin/vehicles/page.tsx`
@@ -218,6 +272,10 @@ Expected: Build succeeds without errors
 2. ✅ `apps/web/src/lib/api-client.ts`
    - Added `approveVehicle()` method
    - Added `rejectVehicle()` method
+   - Added `updateVehicleAvailability()` method
+
+3. ✅ `apps/web/src/lib/auth-context.tsx`
+   - Added `profilePicture` field to User type definition
    - Added `updateVehicleAvailability()` method
 
 ---

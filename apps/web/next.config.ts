@@ -16,6 +16,19 @@ const nextConfig: NextConfig = {
         hostname: "picsum.photos",
         pathname: "/**",
       },
+      // Allow localhost for development
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "3001",
+        pathname: "/uploads/**",
+      },
+      // Add your production API domain here when deploying
+      // {
+      //   protocol: "https",
+      //   hostname: "your-api-domain.com",
+      //   pathname: "/uploads/**",
+      // },
     ],
   },
 };
