@@ -180,7 +180,7 @@ export default function ProfilePage() {
                       <Calendar className="w-4 h-4" />
                       <span>Member Since</span>
                     </div>
-                    <p className="font-medium">{new Date(user.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
+                    <p className="font-medium">{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
                   </div>
 
                   <div className="space-y-2">

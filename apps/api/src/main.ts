@@ -2,43 +2,67 @@ import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
-  // Enable CORS for frontend
-  const allowedOrigins = [
-    'http://localhost:3000',
-    'http://localhost:3002',
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:3002'
-  ];
-
-  // Add production frontend URL if available
-  if (process.env.FRONTEND_URL) {
-    allowedOrigins.push(process.env.FRONTEND_URL);
-  }
+  // Security: Helmet middleware
+  app.use(helmet({
+    contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
+    crossOriginEmbedderPolicy: false,
+  }));
+  
+  // CORS Configuration
+  const corsOrigins = process.env.CORS_ORIGINS 
+    ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
+    : ['http://localhost:3000', 'http://localhost:3002'];
 
   app.enableCors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, Postman, etc.)
+      if (!origin) return callback(null, true);
+      
+      if (corsOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['X-Total-Count'],
+    maxAge: 3600,
   });
   
-  // Enable validation pipes
+  // Global validation pipe with strict settings
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,
     transform: true,
+    transformOptions: {
+      enableImplicitConversion: true,
+    },
+    disableErrorMessages: process.env.NODE_ENV === 'production',
   }));
   
   // Health check endpoint
+  app.getHttpAdapter().get('/health', (req, res) => {
+    res.status(200).json({ 
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      uptime: process.uptime(),
+    });
+  });
+
+  // Root endpoint
   app.getHttpAdapter().get('/', (req, res) => {
     res.json({ 
-      message: 'VehicleRent Kenya API is running!', 
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development'
+      message: 'VehicleRent Kenya API', 
+      version: '1.0.0',
+      docs: '/api/docs',
     });
   });
   
@@ -47,7 +71,11 @@ async function bootstrap() {
   
   console.log(`🚀 Server running on port ${port}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔒 Security: Helmet enabled`);
+  console.log(`🌐 CORS: ${corsOrigins.join(', ')}`);
 }
 
-bootstrap();
-
+bootstrap().catch((error) => {
+  console.error('❌ Failed to start server:', error);
+  process.exit(1);
+});

@@ -8,6 +8,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
+const config_1 = require("@nestjs/config");
+const throttler_1 = require("@nestjs/throttler");
+const core_1 = require("@nestjs/core");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 const database_module_1 = require("./database/database.module");
@@ -16,17 +19,25 @@ const vehicles_module_1 = require("./vehicles/vehicles.module");
 const contact_module_1 = require("./contact/contact.module");
 const kyc_module_1 = require("./kyc/kyc.module");
 const bookings_module_1 = require("./bookings/bookings.module");
-const config_1 = require("@nestjs/config");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            database_module_1.DatabaseModule,
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
+                envFilePath: '.env',
             }),
+            throttler_1.ThrottlerModule.forRootAsync({
+                imports: [config_1.ConfigModule],
+                inject: [config_1.ConfigService],
+                useFactory: (config) => [{
+                        ttl: parseInt(config.get('THROTTLE_TTL') || '60', 10) * 1000,
+                        limit: parseInt(config.get('THROTTLE_LIMIT') || '10', 10),
+                    }],
+            }),
+            database_module_1.DatabaseModule,
             auth_module_1.AuthModule,
             vehicles_module_1.VehiclesModule,
             contact_module_1.ContactModule,
@@ -34,6 +45,12 @@ exports.AppModule = AppModule = __decorate([
             bookings_module_1.BookingsModule,
         ],
         controllers: [app_controller_1.AppController],
-        providers: [app_service_1.AppService]
+        providers: [
+            app_service_1.AppService,
+            {
+                provide: core_1.APP_GUARD,
+                useClass: throttler_1.ThrottlerGuard,
+            },
+        ],
     })
 ], AppModule);
