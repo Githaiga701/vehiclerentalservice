@@ -515,6 +515,45 @@ class ApiClient {
     await cacheManager.clear('vehicles');
   }
 
+  // Admin vehicle approval endpoints
+  async approveVehicle(id: string) {
+    const result = await this.request<any>(`/vehicles/${id}/approve`, {
+      method: 'PUT',
+    });
+    
+    // Clear specific vehicle and vehicles list cache
+    await cacheManager.delete(`GET:/vehicles/${id}:`, 'vehicles');
+    await this.clearVehiclesCaches();
+    
+    return result;
+  }
+
+  async rejectVehicle(id: string, reason?: string) {
+    const result = await this.request<any>(`/vehicles/${id}/reject`, {
+      method: 'PUT',
+      body: JSON.stringify({ reason }),
+    });
+    
+    // Clear specific vehicle and vehicles list cache
+    await cacheManager.delete(`GET:/vehicles/${id}:`, 'vehicles');
+    await this.clearVehiclesCaches();
+    
+    return result;
+  }
+
+  async updateVehicleAvailability(id: string, isAvailable: boolean) {
+    const result = await this.request<any>(`/vehicles/${id}/availability`, {
+      method: 'PUT',
+      body: JSON.stringify({ isAvailable }),
+    });
+    
+    // Clear specific vehicle and vehicles list cache
+    await cacheManager.delete(`GET:/vehicles/${id}:`, 'vehicles');
+    await this.clearVehiclesCaches();
+    
+    return result;
+  }
+
   // Contact form endpoint
   async submitContactForm(data: {
     name: string;

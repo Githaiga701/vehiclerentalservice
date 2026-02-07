@@ -29,7 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { toast } from "sonner";
-import apiClient from "@/lib/api-client";
+import { apiClient } from "@/lib/api-client";
 
 interface Vehicle {
   id: string;
@@ -75,8 +75,8 @@ export default function AdminVehiclesPage() {
   const fetchVehicles = async () => {
     try {
       setIsLoadingData(true);
-      const response = await apiClient.get('/vehicles');
-      setVehicles(response.data.data || response.data || []);
+      const response = await apiClient.getVehicles();
+      setVehicles(response.data || []);
     } catch (error) {
       console.error('Failed to fetch vehicles:', error);
       toast.error('Failed to load vehicles');
@@ -127,7 +127,7 @@ export default function AdminVehiclesPage() {
 
   const handleApprove = async (vehicleId: string) => {
     try {
-      await apiClient.put(`/vehicles/${vehicleId}/approve`);
+      await apiClient.approveVehicle(vehicleId);
       toast.success('Vehicle approved successfully');
       fetchVehicles();
     } catch (error) {
@@ -138,9 +138,7 @@ export default function AdminVehiclesPage() {
 
   const handleReject = async (vehicleId: string) => {
     try {
-      await apiClient.put(`/vehicles/${vehicleId}/reject`, {
-        reason: 'Does not meet platform standards'
-      });
+      await apiClient.rejectVehicle(vehicleId, 'Does not meet platform standards');
       toast.success('Vehicle rejected');
       fetchVehicles();
     } catch (error) {
@@ -151,9 +149,7 @@ export default function AdminVehiclesPage() {
 
   const handleAvailabilityToggle = async (vehicleId: string, currentStatus: boolean) => {
     try {
-      await apiClient.put(`/vehicles/${vehicleId}/availability`, {
-        isAvailable: !currentStatus
-      });
+      await apiClient.updateVehicleAvailability(vehicleId, !currentStatus);
       toast.success(`Vehicle ${!currentStatus ? 'enabled' : 'disabled'} successfully`);
       fetchVehicles();
     } catch (error) {
