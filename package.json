@@ -12,8 +12,7 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "test": "turbo test",
-    "format": "prettier --write .",
-    "start:prod": "node apps/api/start.js"
+    "format": "prettier --write ."
   },
   "prisma": {
     "schema": "apps/api/prisma/schema.prisma",
