@@ -11,7 +11,7 @@ services:
       npx prisma generate && \
       npx prisma migrate deploy && \
       npm run build
-    startCommand: npm run start:prod
+    startCommand: node start.js
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
