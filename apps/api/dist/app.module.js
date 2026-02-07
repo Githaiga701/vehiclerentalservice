@@ -19,6 +19,8 @@ const vehicles_module_1 = require("./vehicles/vehicles.module");
 const contact_module_1 = require("./contact/contact.module");
 const kyc_module_1 = require("./kyc/kyc.module");
 const bookings_module_1 = require("./bookings/bookings.module");
+const health_module_1 = require("./health/health.module");
+const env_validation_1 = require("./config/env.validation");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -28,16 +30,22 @@ exports.AppModule = AppModule = __decorate([
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
                 envFilePath: '.env',
+                validationSchema: env_validation_1.envValidationSchema,
+                validationOptions: {
+                    abortEarly: true, // Stop on first error
+                    allowUnknown: true, // Allow extra env vars
+                },
             }),
             throttler_1.ThrottlerModule.forRootAsync({
                 imports: [config_1.ConfigModule],
                 inject: [config_1.ConfigService],
                 useFactory: (config) => [{
-                        ttl: parseInt(config.get('THROTTLE_TTL') || '60', 10) * 1000,
-                        limit: parseInt(config.get('THROTTLE_LIMIT') || '10', 10),
+                        ttl: config.get('THROTTLE_TTL', 60) * 1000,
+                        limit: config.get('THROTTLE_LIMIT', 10),
                     }],
             }),
             database_module_1.DatabaseModule,
+            health_module_1.HealthModule,
             auth_module_1.AuthModule,
             vehicles_module_1.VehiclesModule,
             contact_module_1.ContactModule,

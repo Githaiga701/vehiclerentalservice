@@ -47,21 +47,12 @@ async function bootstrap() {
         },
         disableErrorMessages: process.env.NODE_ENV === 'production',
     }));
-    // Health check endpoint
-    app.getHttpAdapter().get('/health', (req, res) => {
-        res.status(200).json({
-            status: 'ok',
-            timestamp: new Date().toISOString(),
-            environment: process.env.NODE_ENV || 'development',
-            uptime: process.uptime(),
-        });
-    });
     // Root endpoint
     app.getHttpAdapter().get('/', (req, res) => {
         res.json({
             message: 'VehicleRent Kenya API',
             version: '1.0.0',
-            docs: '/api/docs',
+            health: '/health',
         });
     });
     const port = process.env.PORT || 3001;
