@@ -21,15 +21,21 @@ import {
   Clock,
   XCircle,
   Loader2,
-  Edit
+  Edit,
+  Camera,
+  Upload
 } from "lucide-react";
 import { toast } from "sonner";
+import Image from "next/image";
 
 export default function ProfilePage() {
   const { user, isAuthenticated, isLoading, refreshUser } = useAuth();
   const router = useRouter();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isUploadingPicture, setIsUploadingPicture] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
     name: "",
     email: ""
@@ -51,7 +57,35 @@ export default function ProfilePage() {
   }, [user]);
 
   const handleEditProfile = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
     setIsEditDialogOpen(true);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB');
+      return;
+    }
+
+    setSelectedImage(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -59,15 +93,81 @@ export default function ProfilePage() {
     
     try {
       setIsUpdating(true);
+
+      // Update profile info
       await apiClient.updateProfile(editForm);
+
+      // Upload profile picture if selected
+      if (selectedImage) {
+        const formData = new FormData();
+        formData.append('profilePicture', selectedImage);
+
+        const response = await fetch('http://localhost:3001/auth/profile-picture', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          },
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to upload profile picture');
+        }
+      }
+
       toast.success("Profile updated successfully");
       setIsEditDialogOpen(false);
+      setSelectedImage(null);
+      setImagePreview(null);
       // Refresh user data
       await refreshUser();
     } catch (error) {
       handleApiError(error);
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleProfilePictureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB');
+      return;
+    }
+
+    try {
+      setIsUploadingPicture(true);
+      const formData = new FormData();
+      formData.append('profilePicture', file);
+
+      const response = await fetch('http://localhost:3001/auth/profile-picture', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload profile picture');
+      }
+
+      toast.success('Profile picture updated successfully');
+      await refreshUser();
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload profile picture');
+    } finally {
+      setIsUploadingPicture(false);
     }
   };
 
@@ -136,11 +236,40 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center space-x-4">
-                  <Avatar className="h-20 w-20">
-                    <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
-                      {user.name?.charAt(0)?.toUpperCase() || "U"}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative">
+                    <Avatar className="h-20 w-20">
+                      {user.profilePicture ? (
+                        <Image
+                          src={`http://localhost:3001${user.profilePicture}`}
+                          alt={user.name || 'Profile'}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
+                          {user.name?.charAt(0)?.toUpperCase() || "U"}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                    <label
+                      htmlFor="profile-picture-upload"
+                      className="absolute bottom-0 right-0 p-1.5 bg-primary text-white rounded-full cursor-pointer hover:bg-primary/90 transition-colors shadow-lg"
+                    >
+                      {isUploadingPicture ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Camera className="h-4 w-4" />
+                      )}
+                    </label>
+                    <input
+                      id="profile-picture-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleProfilePictureUpload}
+                      disabled={isUploadingPicture}
+                    />
+                  </div>
                   <div className="flex-1">
                     <h3 className="text-xl font-semibold">{user.name}</h3>
                     <div className="flex items-center space-x-2 mt-1">
@@ -314,39 +443,107 @@ export default function ProfilePage() {
 
       {/* Edit Profile Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Edit Profile</DialogTitle>
             <DialogDescription>
-              Update your personal information
+              Update your personal information and profile picture
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleUpdateProfile} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                value={editForm.name}
-                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                placeholder="Enter your full name"
-                required
-              />
+          <form onSubmit={handleUpdateProfile} className="space-y-6">
+            {/* Profile Picture Section */}
+            <div className="flex flex-col items-center space-y-4">
+              <div className="relative">
+                <Avatar className="h-24 w-24">
+                  {imagePreview ? (
+                    <Image
+                      src={imagePreview}
+                      alt="Preview"
+                      fill
+                      className="object-cover"
+                    />
+                  ) : user.profilePicture ? (
+                    <Image
+                      src={`http://localhost:3001${user.profilePicture}`}
+                      alt={user.name || 'Profile'}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <AvatarFallback className="bg-primary/10 text-primary text-3xl font-bold">
+                      {user.name?.charAt(0)?.toUpperCase() || "U"}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+                <label
+                  htmlFor="edit-profile-picture"
+                  className="absolute bottom-0 right-0 p-2 bg-primary text-white rounded-full cursor-pointer hover:bg-primary/90 transition-colors shadow-lg"
+                >
+                  <Camera className="h-4 w-4" />
+                </label>
+                <input
+                  id="edit-profile-picture"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageSelect}
+                  disabled={isUpdating}
+                />
+              </div>
+              {selectedImage && (
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    New picture selected: {selectedImage.name}
+                  </p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedImage(null);
+                      setImagePreview(null);
+                    }}
+                    className="text-xs mt-1"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={editForm.email}
-                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                placeholder="Enter your email"
-              />
+
+            {/* Form Fields */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  placeholder="Enter your full name"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                  placeholder="Enter your email"
+                />
+              </div>
             </div>
+
             <div className="flex justify-end space-x-2">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setIsEditDialogOpen(false)}
+                onClick={() => {
+                  setIsEditDialogOpen(false);
+                  setSelectedImage(null);
+                  setImagePreview(null);
+                }}
                 disabled={isUpdating}
               >
                 Cancel

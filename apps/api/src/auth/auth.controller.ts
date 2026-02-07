@@ -1,4 +1,5 @@
-import { Controller, Post, Get, Put, Body, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Get, Put, Body, UseGuards, HttpCode, HttpStatus, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
 import { RequestOtpDto } from './dto/request-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
@@ -38,5 +39,25 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async updateProfile(@CurrentUser() user: any, @Body() data: { name?: string; email?: string }) {
     return this.authService.updateProfile(user.sub, data);
+  }
+
+  @Post('profile-picture')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('profilePicture'))
+  async uploadProfilePicture(
+    @CurrentUser() user: any,
+    @UploadedFile() file: Express.Multer.File
+  ) {
+    return this.authService.uploadProfilePicture(user.sub, file);
+  }
+
+  @Put('profile-picture')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('profilePicture'))
+  async updateProfilePicture(
+    @CurrentUser() user: any,
+    @UploadedFile() file: Express.Multer.File
+  ) {
+    return this.authService.uploadProfilePicture(user.sub, file);
   }
 }

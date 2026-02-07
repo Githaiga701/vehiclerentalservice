@@ -179,6 +179,35 @@ export class AuthService {
     return user;
   }
 
+  async uploadProfilePicture(userId: string, file: Express.Multer.File) {
+    if (!file) {
+      throw new UnauthorizedException('No file provided');
+    }
+
+    // In a real app, you'd upload to cloud storage (AWS S3, Cloudinary, etc.)
+    // For now, we'll store the filename
+    const profilePictureUrl = `/uploads/profiles/${file.filename}`;
+
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: { profilePicture: profilePictureUrl },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        profilePicture: true,
+      },
+    });
+
+    return {
+      message: 'Profile picture uploaded successfully',
+      profilePicture: user.profilePicture,
+      user,
+    };
+  }
+
   private normalizePhone(phone: string): string {
     // Remove all non-digit characters
     const digits = phone.replace(/\D/g, '');
