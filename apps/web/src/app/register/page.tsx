@@ -58,6 +58,8 @@ export default function RegisterPage() {
     const success = await requestOtp(normalizedPhone);
     if (success) {
       setStep("otp");
+    } else {
+      setError("Failed to send OTP. Please check your phone number and try again.");
     }
     
     setIsLoading(false);
@@ -79,6 +81,8 @@ export default function RegisterPage() {
     if (result.success && result.user) {
       // For new users, redirect to KYC regardless of role
       router.push("/kyc");
+    } else {
+      setError("Verification failed. Please check your OTP and try again.");
     }
     
     setIsLoading(false);
