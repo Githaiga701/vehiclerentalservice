@@ -8,8 +8,8 @@ services:
     buildCommand: |
       cd apps/api && \
       pnpm install && \
-      pnpm prisma generate && \
-      pnpm prisma db push --accept-data-loss --skip-generate && \
+      chmod +x setup-db.sh && \
+      ./setup-db.sh && \
       pnpm build
     startCommand: cd apps/api && node start.js
     healthCheckPath: /health

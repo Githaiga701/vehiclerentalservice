@@ -24,12 +24,19 @@ async function bootstrap() {
             // Allow requests with no origin (mobile apps, Postman, etc.)
             if (!origin)
                 return callback(null, true);
-            if (corsOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
-                callback(null, true);
+            // Allow if origin is in the allowed list
+            if (corsOrigins.indexOf(origin) !== -1) {
+                return callback(null, true);
             }
-            else {
-                callback(new Error('Not allowed by CORS'));
+            // Allow all Vercel preview deployments (*.vercel.app)
+            if (origin.endsWith('.vercel.app')) {
+                return callback(null, true);
             }
+            // Allow in development mode
+            if (process.env.NODE_ENV === 'development') {
+                return callback(null, true);
+            }
+            callback(new Error('Not allowed by CORS'));
         },
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
