@@ -5,11 +5,17 @@ import { RequestOtpDto } from './dto/request-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RolesGuard } from './guards/roles.guard';
+import { Roles } from './decorators/roles.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
+import { RedisService } from '../database/redis.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly redisService: RedisService,
+  ) {}
 
   @Post('request-otp')
   @HttpCode(HttpStatus.OK)
@@ -59,5 +65,26 @@ export class AuthController {
     @UploadedFile() file: Express.Multer.File
   ) {
     return this.authService.uploadProfilePicture(user.sub, file);
+  }
+
+  @Get('admin/otps')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  async getAllOtps() {
+    if (!this.redisService.isAvailable()) {
+      return {
+        message: 'Redis not available. OTPs are stored in database.',
+        otps: [],
+        redisAvailable: false,
+      };
+    }
+
+    const otps = await this.redisService.getAllOtps();
+    return {
+      message: 'Active OTPs retrieved successfully',
+      otps,
+      redisAvailable: true,
+      count: otps.length,
+    };
   }
 }

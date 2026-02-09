@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException, ConflictException, Logger } from '@n
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../database/prisma.service';
+import { RedisService } from '../database/redis.service';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -12,6 +13,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly redisService: RedisService,
   ) {}
 
   async requestOtp(phone: string): Promise<{ message: string; expiresIn: number }> {
@@ -40,23 +42,42 @@ export class AuthService {
       });
     }
 
-    // Create OTP record
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-    await this.prisma.oTP.create({
-      data: {
-        userId: user.id,
-        code: otpCode,
-        expiresAt,
-      },
-    });
+    // Store OTP in Redis if available, otherwise use database
+    const expiresInSeconds = 300; // 5 minutes
+    
+    if (this.redisService.isAvailable()) {
+      try {
+        await this.redisService.setOtp(normalizedPhone, otpCode, expiresInSeconds);
+        this.logger.log(`OTP stored in Redis for ${normalizedPhone}: ${otpCode}`);
+      } catch (error) {
+        this.logger.warn('Failed to store OTP in Redis, falling back to database');
+        // Fallback to database
+        await this.storeOtpInDatabase(user.id, otpCode, expiresInSeconds);
+      }
+    } else {
+      // Use database storage
+      await this.storeOtpInDatabase(user.id, otpCode, expiresInSeconds);
+    }
 
     // In production, send OTP via SMS (Twilio, Africa's Talking, etc.)
     this.logger.log(`OTP for ${normalizedPhone}: ${otpCode}`);
 
     return {
       message: 'OTP sent successfully',
-      expiresIn: 300, // 5 minutes in seconds
+      expiresIn: expiresInSeconds,
     };
+  }
+
+  private async storeOtpInDatabase(userId: string, otpCode: string, expiresInSeconds: number): Promise<void> {
+    const expiresAt = new Date(Date.now() + expiresInSeconds * 1000);
+    await this.prisma.oTP.create({
+      data: {
+        userId,
+        code: otpCode,
+        expiresAt,
+      },
+    });
+    this.logger.log(`OTP stored in database for user ${userId}`);
   }
 
   async verifyOtp(phone: string, code: string): Promise<{ accessToken: string; refreshToken: string; user: any }> {
@@ -75,27 +96,53 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    // For development/testing: Accept any 6-digit code
-    // In production, you would validate against the actual OTP
+    // Validate OTP format
     if (code.length !== 6 || !/^\d{6}$/.test(code)) {
       throw new UnauthorizedException('Invalid OTP format');
     }
 
-    // Find the most recent OTP for this user (for logging purposes)
-    const latestOtp = await this.prisma.oTP.findFirst({
-      where: {
-        userId: user.id,
-        expiresAt: { gt: new Date() },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    // Check OTP in Redis first, then database
+    let isValidOtp = false;
+    
+    if (this.redisService.isAvailable()) {
+      try {
+        const storedOtp = await this.redisService.getOtp(normalizedPhone);
+        if (storedOtp === code) {
+          isValidOtp = true;
+          // Delete OTP after successful verification
+          await this.redisService.deleteOtp(normalizedPhone);
+          this.logger.log(`OTP verified from Redis for ${normalizedPhone}`);
+        }
+      } catch (error) {
+        this.logger.warn('Failed to verify OTP from Redis, checking database');
+      }
+    }
 
-    if (latestOtp) {
-      // Mark OTP as verified
-      await this.prisma.oTP.update({
-        where: { id: latestOtp.id },
-        data: { verified: true },
+    // If not found in Redis, check database
+    if (!isValidOtp) {
+      const latestOtp = await this.prisma.oTP.findFirst({
+        where: {
+          userId: user.id,
+          code: code,
+          expiresAt: { gt: new Date() },
+          verified: false,
+        },
+        orderBy: { createdAt: 'desc' },
       });
+
+      if (latestOtp) {
+        isValidOtp = true;
+        // Mark OTP as verified
+        await this.prisma.oTP.update({
+          where: { id: latestOtp.id },
+          data: { verified: true },
+        });
+        this.logger.log(`OTP verified from database for ${normalizedPhone}`);
+      }
+    }
+
+    if (!isValidOtp) {
+      throw new UnauthorizedException('Invalid or expired OTP');
     }
 
     // Generate tokens

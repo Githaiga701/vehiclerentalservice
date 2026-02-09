@@ -568,6 +568,59 @@ class ApiClient {
     });
   }
 
+  // Admin contact endpoints
+  async getAllContactMessages(status?: string) {
+    const query = status ? `?status=${status}` : '';
+    return this.request<any[]>(`/contact/admin/all${query}`, {}, {
+      ttl: 30 * 1000, // Cache for 30 seconds
+      type: 'admin'
+    });
+  }
+
+  async getUnreadContactCount() {
+    return this.request<{ count: number }>('/contact/admin/unread-count', {}, {
+      ttl: 10 * 1000, // Cache for 10 seconds
+      type: 'admin'
+    });
+  }
+
+  async getContactMessage(id: string) {
+    return this.request<any>(`/contact/admin/${id}`);
+  }
+
+  async markContactAsRead(id: string) {
+    const result = await this.request<any>(`/contact/admin/${id}/read`, {
+      method: 'PUT',
+    });
+    await cacheManager.clear('admin');
+    return result;
+  }
+
+  async markContactAsReplied(id: string, notes?: string) {
+    const result = await this.request<any>(`/contact/admin/${id}/reply`, {
+      method: 'PUT',
+      body: JSON.stringify({ notes }),
+    });
+    await cacheManager.clear('admin');
+    return result;
+  }
+
+  async archiveContact(id: string) {
+    const result = await this.request<any>(`/contact/admin/${id}/archive`, {
+      method: 'PUT',
+    });
+    await cacheManager.clear('admin');
+    return result;
+  }
+
+  async deleteContact(id: string) {
+    const result = await this.request<void>(`/contact/admin/${id}`, {
+      method: 'DELETE',
+    });
+    await cacheManager.clear('admin');
+    return result;
+  }
+
   // KYC endpoints with caching
   async submitKyc(data: FormData) {
     const result = await this.request<{ message: string }>('/kyc', {

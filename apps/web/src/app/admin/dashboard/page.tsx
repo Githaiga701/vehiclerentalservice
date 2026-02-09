@@ -18,7 +18,8 @@ import {
   AlertCircle,
   Settings,
   FileText,
-  BarChart3
+  BarChart3,
+  MessageSquare
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -263,6 +264,14 @@ export default function AdminDashboard() {
                 >
                   <BarChart3 className="mr-2 h-4 w-4" />
                   View Reports
+                </Button>
+                
+                <Button 
+                  className="w-full justify-start bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white shadow-md" 
+                  onClick={() => router.push("/admin/messages")}
+                >
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  Contact Messages
                 </Button>
               </CardContent>
             </Card>
