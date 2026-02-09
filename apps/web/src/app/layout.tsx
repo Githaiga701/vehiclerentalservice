@@ -25,12 +25,12 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "VehicleRent Kenya - Premium Car Rental Service",
+  title: "RentCarKenya - Executive Mobility Solutions",
   description: "Kenya's premier vehicle rental platform. Rent cars, SUVs, and luxury vehicles with ease. Available in Nairobi, Mombasa, and nationwide.",
   keywords: ["car rental", "vehicle rental", "Kenya", "Nairobi", "Mombasa", "SUV rental", "luxury cars"],
-  authors: [{ name: "VehicleRent Kenya" }],
-  creator: "VehicleRent Kenya",
-  publisher: "VehicleRent Kenya",
+  authors: [{ name: "RentCarKenya" }],
+  creator: "RentCarKenya",
+  publisher: "RentCarKenya",
   formatDetection: {
     email: false,
     address: false,
@@ -41,16 +41,16 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "VehicleRent Kenya - Premium Car Rental Service",
+    title: "RentCarKenya - Executive Mobility Solutions",
     description: "Kenya's premier vehicle rental platform. Rent cars, SUVs, and luxury vehicles with ease.",
     url: "/",
-    siteName: "VehicleRent Kenya",
+    siteName: "RentCarKenya",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "VehicleRent Kenya - Car Rental Service",
+        alt: "RentCarKenya - Car Rental Service",
       },
     ],
     locale: "en_KE",
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "VehicleRent Kenya - Premium Car Rental Service",
+    title: "RentCarKenya - Executive Mobility Solutions",
     description: "Kenya's premier vehicle rental platform. Rent cars, SUVs, and luxury vehicles with ease.",
     images: ["/og-image.png"],
   },
@@ -77,9 +77,9 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "VehicleRent Kenya",
+    title: "RentCarKenya",
   },
-  applicationName: "VehicleRent Kenya",
+  applicationName: "RentCarKenya",
   category: "travel",
 };
 
@@ -92,10 +92,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* PWA Meta Tags */}
-        <meta name="application-name" content="VehicleRent Kenya" />
+        <meta name="application-name" content="RentCarKenya" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="VehicleRent Kenya" />
+        <meta name="apple-mobile-web-app-title" content="RentCarKenya" />
         <meta name="description" content="Kenya's premier vehicle rental platform" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />

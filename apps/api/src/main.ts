@@ -61,7 +61,7 @@ async function bootstrap() {
   // Root endpoint
   app.getHttpAdapter().get('/', (req, res) => {
     res.json({ 
-      message: 'VehicleRent Kenya API', 
+      message: 'RentCarKenya API', 
       version: '1.0.0',
       health: '/health',
     });

@@ -47,7 +47,7 @@ export function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-bold text-xl text-primary">
           <Car className="h-7 w-7" />
-          <span>VehicleRent</span>
+          <span>RentCarKenya</span>
         </Link>
 
         {/* Desktop Nav */}
@@ -183,7 +183,7 @@ export function Navbar() {
                 className="flex items-center gap-2 text-xl font-bold text-primary"
                 onClick={() => setOpen(false)}
               >
-                <Car className="h-8 w-8" /> VehicleRent
+                <Car className="h-8 w-8" /> RentCarKenya
               </Link>
 
               <nav className="flex flex-col gap-4">

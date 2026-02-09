@@ -1,25 +1,25 @@
 module.exports = {
   moduleFileExtensions: ['js', 'json', 'ts'],
-  rootDir: 'src',
-  testRegex: '.*\\.spec\\.ts$',
+  rootDir: '.',
+  testRegex: '(/__tests__/|/test/|.spec\\.ts$)',
+  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
   transform: {
     '^.+\\.(t|j)s$': 'ts-jest',
   },
   collectCoverageFrom: [
-    '**/*.(t|j)s',
-    '!**/*.module.ts',
-    '!**/main.ts',
-    '!**/test/**',
-    '!**/*.spec.ts',
-    '!**/dto/**',
-    '!**/decorators/**',
-    '!**/guards/**',
-    '!**/strategies/**',
+    'src/**/*.(t|j)s',
+    '!src/**/*.module.ts',
+    '!src/**/main.ts',
+    '!src/**/*.spec.ts',
+    '!src/**/dto/**',
+    '!src/**/decorators/**',
+    '!src/**/guards/**',
+    '!src/**/strategies/**',
   ],
-  coverageDirectory: '../coverage',
+  coverageDirectory: 'coverage',
   testEnvironment: 'node',
   moduleNameMapper: {
-    '^src/(.*)$': '<rootDir>/$1',
+    '^src/(.*)$': '<rootDir>/src/$1',
   },
   coverageThreshold: {
     './src/auth/auth.service.ts': {

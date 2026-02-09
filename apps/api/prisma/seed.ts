@@ -31,7 +31,7 @@ async function main() {
     },
     {
       name: 'Admin User',
-      email: 'admin@vehiclerent.ke',
+      email: 'admin@rentcarkenya.co.ke',
       phone: '+254790843300',
       role: 'ADMIN' as UserRole,
       password: await bcrypt.hash('admin123', 10),
