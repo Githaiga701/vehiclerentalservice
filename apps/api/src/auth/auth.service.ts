@@ -1,9 +1,10 @@
-import { Injectable, UnauthorizedException, ConflictException, Logger } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, Logger, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../database/prisma.service';
 import { RedisService } from '../database/redis.service';
 import { WhatsAppService } from '../services/whatsapp.service';
+import { UserRole } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -288,5 +289,64 @@ export class AuthService {
     });
 
     return { accessToken, refreshToken };
+  }
+
+  // Admin Management Methods
+  async updateUserRole(phone: string, role: UserRole): Promise<any> {
+    const normalizedPhone = this.normalizePhone(phone);
+
+    // Find user
+    const user = await this.prisma.user.findUnique({
+      where: { phone: normalizedPhone },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with phone ${normalizedPhone} not found`);
+    }
+
+    // Update role
+    const updatedUser = await this.prisma.user.update({
+      where: { phone: normalizedPhone },
+      data: { role },
+      select: {
+        id: true,
+        phone: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    this.logger.log(`User ${normalizedPhone} role updated to ${role}`);
+
+    return {
+      message: `User role updated to ${role} successfully`,
+      user: updatedUser,
+    };
+  }
+
+  async makeAdmin(phone: string): Promise<any> {
+    return this.updateUserRole(phone, UserRole.ADMIN);
+  }
+
+  async getAllUsers(): Promise<any[]> {
+    const users = await this.prisma.user.findMany({
+      select: {
+        id: true,
+        phone: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return users;
   }
 }
