@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, UserRole, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -12,34 +12,34 @@ async function main() {
       name: 'John Mwangi',
       email: 'john@example.com',
       phone: '+254712345678',
-      role: 'RENTER',
+      role: 'RENTER' as UserRole,
       password: await bcrypt.hash('password123', 10),
     },
     {
       name: 'Mary Wanjiku',
       email: 'mary@example.com',
       phone: '+254723456789',
-      role: 'OWNER',
+      role: 'OWNER' as UserRole,
       password: await bcrypt.hash('password123', 10),
     },
     {
       name: 'Peter Omondi',
       email: 'peter@example.com',
       phone: '+254734567890',
-      role: 'OWNER',
+      role: 'OWNER' as UserRole,
       password: await bcrypt.hash('password123', 10),
     },
     {
       name: 'Admin User',
       email: 'admin@vehiclerent.ke',
       phone: '+254790843300',
-      role: 'ADMIN',
+      role: 'ADMIN' as UserRole,
       password: await bcrypt.hash('admin123', 10),
     },
   ];
 
   console.log('👥 Creating users...');
-  const createdUsers = [];
+  const createdUsers: User[] = [];
   
   for (const userData of users) {
     const user = await prisma.user.upsert({
@@ -160,7 +160,7 @@ async function main() {
 
   console.log('🚗 Creating vehicles...');
   for (const vehicleData of vehicles) {
-    const vehicle = await prisma.vehicle.create({
+    await prisma.vehicle.create({
       data: vehicleData,
     });
     console.log(`✅ Created vehicle: ${vehicleData.title}`);
