@@ -45,7 +45,8 @@ export class WhatsAppService {
       this.logger.log(`WhatsApp OTP sent to ${phone}: ${message.sid}`);
       return true;
     } catch (error) {
-      this.logger.error(`Failed to send WhatsApp OTP to ${phone}:`, error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to send WhatsApp OTP to ${phone}:`, errorMessage);
       return false;
     }
   }
@@ -68,7 +69,8 @@ export class WhatsAppService {
       this.logger.log(`WhatsApp message sent to ${phone}: ${msg.sid}`);
       return true;
     } catch (error) {
-      this.logger.error(`Failed to send WhatsApp message to ${phone}:`, error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to send WhatsApp message to ${phone}:`, errorMessage);
       return false;
     }
   }
