@@ -3,8 +3,8 @@ import { UserRole } from '@prisma/client';
 
 export class UpdateUserRoleDto {
   @IsString()
-  phone: string;
+  phone!: string;
 
   @IsEnum(UserRole)
-  role: UserRole;
+  role!: UserRole;
 }
