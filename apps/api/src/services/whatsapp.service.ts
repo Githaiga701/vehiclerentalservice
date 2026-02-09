@@ -36,11 +36,29 @@ export class WhatsAppService {
       // Format phone number for WhatsApp
       const whatsappPhone = `whatsapp:${phone}`;
 
-      const message = await this.twilioClient.messages.create({
-        from: this.whatsappNumber,
-        to: whatsappPhone,
-        body: `Your VehicleRent Kenya verification code is: ${otp}\n\nThis code expires in 5 minutes.\n\nDo not share this code with anyone.`,
-      });
+      // Check if using content template
+      const contentSid = this.configService.get('TWILIO_CONTENT_SID');
+
+      let message;
+      if (contentSid) {
+        // Use content template with variables
+        message = await this.twilioClient.messages.create({
+          from: this.whatsappNumber,
+          to: whatsappPhone,
+          contentSid: contentSid,
+          contentVariables: JSON.stringify({
+            "1": otp,
+            "2": "5 minutes"
+          }),
+        });
+      } else {
+        // Use plain text message
+        message = await this.twilioClient.messages.create({
+          from: this.whatsappNumber,
+          to: whatsappPhone,
+          body: `Your VehicleRent Kenya verification code is: ${otp}\n\nThis code expires in 5 minutes.\n\nDo not share this code with anyone.`,
+        });
+      }
 
       this.logger.log(`WhatsApp OTP sent to ${phone}: ${message.sid}`);
       return true;
