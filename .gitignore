@@ -31,3 +31,9 @@ Thumbs.db
 
 # Prisma
 /apps/api/prisma/migrations
+
+# Duplicate folder (to be removed)
+vehiclerentalservice/
+
+# Temporary files
+.temp_delete
