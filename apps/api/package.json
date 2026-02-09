@@ -4,6 +4,7 @@
   "private": true,
   "main": "start.js",
   "scripts": {
+    "prebuild": "prisma generate",
     "build": "nest build",
     "postbuild": "echo Build completed successfully",
     "start": "node start.js",
