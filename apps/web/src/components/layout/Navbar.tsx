@@ -172,11 +172,11 @@ export function Navbar() {
         {/* Mobile Menu */}
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon">
-              <Menu className="h-6 w-6" />
+            <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+              <Menu className="h-6 w-6 text-primary" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+          <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-gradient-to-br from-slate-50 to-blue-50/50">
             <div className="flex flex-col gap-6 mt-10">
               <Link
                 href="/"
@@ -192,8 +192,10 @@ export function Navbar() {
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "text-lg font-medium",
-                      isActive(item.href) ? "text-primary font-semibold" : "text-slate-700"
+                      "text-lg font-medium transition-colors hover:text-primary px-3 py-2 rounded-lg",
+                      isActive(item.href) 
+                        ? "text-primary font-semibold bg-primary/10" 
+                        : "text-slate-700 hover:bg-primary/5"
                     )}
                     onClick={() => setOpen(false)}
                   >
@@ -205,56 +207,58 @@ export function Navbar() {
               <div className="flex flex-col gap-3 mt-8">
                 {user ? (
                   <>
-                    <div className="flex items-center gap-3 px-2 py-3 bg-neutral-100 rounded-lg">
+                    <div className="flex items-center gap-3 px-3 py-3 bg-gradient-to-r from-primary/10 to-blue-500/10 rounded-lg border border-primary/20">
                       <Avatar>
-                        <AvatarFallback>{user.name?.[0]?.toUpperCase() || "U"}</AvatarFallback>
+                        <AvatarFallback className="bg-primary text-white">
+                          {user.name?.[0]?.toUpperCase() || "U"}
+                        </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium">{user.name}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                        <p className="font-medium text-slate-900">{user.name}</p>
+                        <p className="text-sm text-slate-600">{user.email}</p>
                       </div>
                     </div>
 
-                    <Button variant="outline" asChild onClick={() => setOpen(false)}>
+                    <Button variant="outline" asChild onClick={() => setOpen(false)} className="border-primary/30 hover:bg-primary/10">
                       <Link href="/profile">Profile</Link>
                     </Button>
-                    <Button variant="outline" asChild onClick={() => setOpen(false)}>
+                    <Button variant="outline" asChild onClick={() => setOpen(false)} className="border-primary/30 hover:bg-primary/10">
                       <Link href="/bookings">My Bookings</Link>
                     </Button>
                     {isOwner && (
-                      <Button variant="outline" asChild onClick={() => setOpen(false)}>
+                      <Button variant="outline" asChild onClick={() => setOpen(false)} className="border-primary/30 hover:bg-primary/10">
                         <Link href="/owner/dashboard">Owner Dashboard</Link>
                       </Button>
                     )}
                     {isAdmin && (
                       <>
-                        <div className="border-t pt-3 mt-3">
-                          <p className="text-xs font-medium text-muted-foreground mb-2 px-2">Admin Panel</p>
-                          <Button variant="outline" asChild onClick={() => setOpen(false)} className="w-full mb-2">
+                        <div className="border-t border-primary/20 pt-3 mt-3">
+                          <p className="text-xs font-medium text-slate-600 mb-2 px-2">Admin Panel</p>
+                          <Button variant="outline" asChild onClick={() => setOpen(false)} className="w-full mb-2 border-primary/30 hover:bg-primary/10">
                             <Link href="/admin/dashboard">
                               <Shield className="mr-2 h-4 w-4" />
                               Admin Dashboard
                             </Link>
                           </Button>
-                          <Button variant="outline" asChild onClick={() => setOpen(false)} className="w-full mb-2">
+                          <Button variant="outline" asChild onClick={() => setOpen(false)} className="w-full mb-2 border-primary/30 hover:bg-primary/10">
                             <Link href="/kyc-approvals">
                               <Settings className="mr-2 h-4 w-4" />
                               KYC Approvals
                             </Link>
                           </Button>
-                          <Button variant="outline" asChild onClick={() => setOpen(false)} className="w-full">
+                          <Button variant="outline" asChild onClick={() => setOpen(false)} className="w-full mb-2 border-primary/30 hover:bg-primary/10">
                             <Link href="/admin/users">
                               <Users className="mr-2 h-4 w-4" />
                               Manage Users
                             </Link>
                           </Button>
-                          <Button variant="outline" asChild onClick={() => setOpen(false)} className="w-full">
+                          <Button variant="outline" asChild onClick={() => setOpen(false)} className="w-full mb-2 border-primary/30 hover:bg-primary/10">
                             <Link href="/admin/vehicles">
                               <Car className="mr-2 h-4 w-4" />
                               Manage Vehicles
                             </Link>
                           </Button>
-                          <Button variant="outline" asChild onClick={() => setOpen(false)} className="w-full">
+                          <Button variant="outline" asChild onClick={() => setOpen(false)} className="w-full border-primary/30 hover:bg-primary/10">
                             <Link href="/admin/reports">
                               <BarChart3 className="mr-2 h-4 w-4" />
                               Reports
@@ -263,16 +267,20 @@ export function Navbar() {
                         </div>
                       </>
                     )}
-                    <Button variant="destructive" onClick={() => { handleLogout(); setOpen(false); }}>
+                    <Button variant="destructive" onClick={() => { handleLogout(); setOpen(false); }} className="mt-2">
+                      <LogOut className="mr-2 h-4 w-4" />
                       Log out
                     </Button>
                   </>
                 ) : (
                   <>
-                    <Button variant="outline" asChild onClick={() => setOpen(false)}>
-                      <Link href="/login">Sign In</Link>
+                    <Button variant="outline" asChild onClick={() => setOpen(false)} className="border-primary/30 hover:bg-primary/10">
+                      <Link href="/login">
+                        <LogIn className="mr-2 h-4 w-4" />
+                        Sign In
+                      </Link>
                     </Button>
-                    <Button className="bg-accent hover:bg-accent/90" asChild onClick={() => setOpen(false)}>
+                    <Button className="bg-primary hover:bg-primary/90" asChild onClick={() => setOpen(false)}>
                       <Link href="/register">Sign Up</Link>
                     </Button>
                   </>

@@ -348,12 +348,17 @@ export default function Home() {
               </div>
 
               <Button 
+                asChild
                 className="w-full h-16 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-lg font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group"
-                onClick={() => trackBusinessEvents.ctaClick('Find Vehicle', 'Hero Search')}
               >
-                <Search className="mr-3 h-6 w-6" /> 
-                Find Your Perfect Vehicle
-                <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+                <Link 
+                  href="/explore"
+                  onClick={() => trackBusinessEvents.ctaClick('Find Vehicle', 'Hero Search')}
+                >
+                  <Search className="mr-3 h-6 w-6" /> 
+                  Search Vehicles
+                  <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+                </Link>
               </Button>
             </div>
           </div>
