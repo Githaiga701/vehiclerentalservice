@@ -4,7 +4,7 @@
   "private": true,
   "main": "start.js",
   "scripts": {
-    "postinstall": "prisma generate && prisma db push --accept-data-loss --skip-generate || echo 'DB push failed'",
+    "postinstall": "prisma generate && prisma db push --accept-data-loss --skip-generate && prisma db seed || echo 'Seed failed or already seeded'",
     "prebuild": "prisma generate",
     "build": "nest build",
     "postbuild": "echo Build completed successfully",
