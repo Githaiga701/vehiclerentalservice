@@ -37,7 +37,7 @@
 ### ✅ **Test Accounts Available**
 - **Regular User**: +254712345678 (OTP: any 6 digits)
 - **Owner**: +254723456789 (OTP: any 6 digits)
-- **Admin**: +254700000000 (OTP: any 6 digits)
+- **Admin**: +254790843300 (OTP: any 6 digits)
 
 ---
 
@@ -312,7 +312,7 @@
 4. **Navigation**: Test all menu links
 
 ### **Test Admin Features:**
-1. Login with `+254700000000`
+1. Login with `+254790843300`
 2. Access admin dashboard
 3. Test KYC approvals
 4. Test user management

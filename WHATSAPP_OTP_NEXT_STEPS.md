@@ -137,7 +137,7 @@ Value: HXb5b62575e6e4ff6129ad7c8efe1f983e
 
 After testing with your phone, also test with the admin account:
 
-1. Login with: **+254700000000**
+1. Login with: **+254790843300**
 2. Request OTP
 3. Check WhatsApp (if admin phone is in sandbox)
 4. Or check Render logs for OTP

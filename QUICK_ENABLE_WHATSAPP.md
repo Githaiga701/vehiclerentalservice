@@ -54,7 +54,7 @@ Value: whatsapp:+14155238886
 ### Step 3: Test (1 minute)
 
 1. Go to: https://vehiclerentalservice-api.vercel.app/login
-2. Enter: `+254700000000`
+2. Enter: `+254790843300`
 3. Click "Request OTP"
 4. **Check WhatsApp** - OTP should arrive in 2-3 seconds!
 5. Enter OTP and login
@@ -79,13 +79,13 @@ Your users will now receive OTPs via WhatsApp instead of having to check logs.
 **Success**:
 ```
 [WhatsAppService] WhatsApp service initialized
-[WhatsAppService] WhatsApp OTP sent to +254700000000: SMxxxxxxxx
+[WhatsAppService] WhatsApp OTP sent to +254790843300: SMxxxxxxxx
 ```
 
 **Still using fallback**:
 ```
 [WhatsAppService] Twilio credentials not configured
-[AuthService] OTP for +254700000000: 123456
+[AuthService] OTP for +254790843300: 123456
 ```
 
 **Error**:
@@ -95,7 +95,7 @@ Your users will now receive OTPs via WhatsApp instead of having to check logs.
 
 ### Common Issues
 
-**Issue**: Still seeing "OTP for +254700000000: 123456" in logs
+**Issue**: Still seeing "OTP for +254790843300: 123456" in logs
 
 **Solution**: 
 - Verify credentials are correct
@@ -116,7 +116,7 @@ Your users will now receive OTPs via WhatsApp instead of having to check logs.
 **Issue**: "Invalid phone number"
 
 **Solution**:
-- Use format: `+254700000000`
+- Use format: `+254790843300`
 - Include country code (+254 for Kenya)
 - No spaces or dashes
 

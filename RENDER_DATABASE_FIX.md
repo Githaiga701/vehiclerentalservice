@@ -60,7 +60,7 @@ Test in browser console:
 fetch('https://vehiclerentalservice.onrender.com/auth/request-otp', {
   method: 'POST',
   headers: {'Content-Type': 'application/json'},
-  body: JSON.stringify({phone: '+254700000000'})
+  body: JSON.stringify({phone: '+254790843300'})
 })
   .then(r => r.json())
   .then(console.log)

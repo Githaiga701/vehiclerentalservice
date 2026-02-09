@@ -31,7 +31,7 @@
 
 ### 6. Database Seeding ✅
 - Created seed file with 4 test users
-- Admin account: +254700000000
+- Admin account: +254790843300
 - Automatic seeding on deployment
 
 ### 7. WhatsApp OTP Implementation ✅
@@ -60,7 +60,7 @@ Content Template SID: HXb5b62575e6e4ff6129ad7c8efe1f983e
 WhatsApp Number: whatsapp:+14155238886
 Auth Token: [You need to get this from Twilio]
 Test Phone: +254796806058
-Admin Phone: +254700000000
+Admin Phone: +254790843300
 ```
 
 ---
@@ -89,7 +89,7 @@ Admin Phone: +254700000000
 
 - **Frontend**: https://vehiclerentalservice-api.vercel.app
 - **Backend**: https://vehiclerentalservice.onrender.com
-- **Admin Login**: +254700000000
+- **Admin Login**: +254790843300
 
 ---
 

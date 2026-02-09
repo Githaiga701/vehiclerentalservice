@@ -90,7 +90,7 @@
 ## 📋 Test Credentials
 
 ### Admin Account (For Vehicle Approval)
-- **Phone:** +254700000000
+- **Phone:** +254790843300
 - **Role:** ADMIN
 - **OTP:** Check server logs (last seen: 499160)
 - **Access:** Full admin panel
@@ -244,7 +244,7 @@ curl http://localhost:3001/vehicles
 # Request OTP for admin
 curl -X POST http://localhost:3001/auth/request-otp \
   -H "Content-Type: application/json" \
-  -d '{"phone":"+254700000000"}'
+  -d '{"phone":"+254790843300"}'
 ```
 
 ---

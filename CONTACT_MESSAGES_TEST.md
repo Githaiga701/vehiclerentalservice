@@ -93,7 +93,7 @@ All endpoints are live and working:
 2. Fill out the form:
    - Name: Test User
    - Email: test@example.com
-   - Phone: +254700000000
+   - Phone: +254790843300
    - Subject: Test Message
    - Message: This is a test message
 3. Click "Send Message"
@@ -128,7 +128,7 @@ All endpoints are live and working:
 $body = @{
   name="Test User"
   email="test@example.com"
-  phone="+254700000000"
+  phone="+254790843300"
   subject="Test Message"
   message="This is a test message from the contact form."
 } | ConvertTo-Json

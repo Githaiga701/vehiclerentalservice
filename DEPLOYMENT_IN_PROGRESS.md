@@ -96,7 +96,7 @@ Use this script to create admin user:
 ```bash
 curl -X POST https://vehiclerentalservice.onrender.com/auth/request-otp \
   -H "Content-Type: application/json" \
-  -d '{"phone":"+254700000000"}'
+  -d '{"phone":"+254790843300"}'
 ```
 
 This will auto-create the user on first OTP request.
@@ -107,7 +107,7 @@ Once deployment is complete:
 
 1. Go to your Vercel app
 2. Navigate to `/login`
-3. Enter: `+254700000000`
+3. Enter: `+254790843300`
 4. Click "Request OTP"
 5. Check Render logs for OTP code
 

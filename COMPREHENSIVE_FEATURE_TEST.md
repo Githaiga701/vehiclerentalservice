@@ -10,7 +10,7 @@
 - **Test Accounts:**
   - Regular User: +254712345678
   - Owner: +254723456789
-  - Admin: +254700000000
+  - Admin: +254790843300
 
 ---
 
@@ -49,7 +49,7 @@
 
 **Test 1.2.1: Request OTP**
 - **Endpoint:** `POST /auth/request-otp`
-- **Payload:** `{"phone": "+254700000000"}`
+- **Payload:** `{"phone": "+254790843300"}`
 - **Status:** 200 OK
 - **Response:** `{"message": "OTP sent successfully", "expiresIn": 300}`
 - **OTP Generated:** 499160 (visible in server logs)
@@ -154,7 +154,7 @@
 - [ ] Logout works
 
 #### 3.3 Admin Dashboard 🔄 PENDING
-- [ ] Dashboard accessible (login as admin: +254700000000)
+- [ ] Dashboard accessible (login as admin: +254790843300)
 - [ ] Stats display correctly
 - [ ] Quick actions work
 - [ ] Recent activities show
@@ -173,7 +173,7 @@
 ### 4. Integration Tests (Manual Testing Required)
 
 #### 4.1 Vehicle Approval Workflow 🔄 PENDING
-1. [ ] Login as admin (+254700000000, OTP: 499160)
+1. [ ] Login as admin (+254790843300, OTP: 499160)
 2. [ ] Navigate to Admin > Manage Vehicles
 3. [ ] Verify 5 pending vehicles are displayed
 4. [ ] Click "Approve" on first vehicle
@@ -211,7 +211,7 @@ All backend systems are functioning correctly:
 ## Recommendations for Manual Testing
 
 1. **Test Admin Login:**
-   - Phone: +254700000000
+   - Phone: +254790843300
    - Request OTP and use: 499160 (or check server logs for new OTP)
 
 2. **Test Vehicle Approval:**

@@ -17,7 +17,7 @@
 $body = @{
   name="Test User"
   email="test@example.com"
-  phone="+254700000000"
+  phone="+254790843300"
   subject="Test Message"
   message="This is a test message from the contact form."
 } | ConvertTo-Json
@@ -205,7 +205,7 @@ enum ContactStatus {
 ### Test User (for contact form)
 - **Name**: Test User
 - **Email**: test@example.com
-- **Phone**: +254700000000
+- **Phone**: +254790843300
 - **Subject**: Test Message
 - **Message**: This is a test message
 

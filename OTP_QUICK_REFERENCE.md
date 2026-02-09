@@ -6,22 +6,22 @@
 
 ```powershell
 # Request OTP
-$body = @{phone="+254700000000"} | ConvertTo-Json
+$body = @{phone="+254790843300"} | ConvertTo-Json
 Invoke-RestMethod -Uri "http://localhost:3001/auth/request-otp" -Method Post -Body $body -ContentType "application/json"
 
 # Check server logs for OTP code
-# Look for: [AuthService] OTP for +254700000000: 123456
+# Look for: [AuthService] OTP for +254790843300: 123456
 ```
 
 ### Get OTP (Production with Redis)
 
 ```powershell
 # 1. Request OTP
-$body = @{phone="+254700000000"} | ConvertTo-Json
+$body = @{phone="+254790843300"} | ConvertTo-Json
 Invoke-RestMethod -Uri "https://your-api.vercel.app/auth/request-otp" -Method Post -Body $body -ContentType "application/json"
 
 # 2. Login as admin
-$body = @{phone="+254700000000";code="any-6-digits"} | ConvertTo-Json
+$body = @{phone="+254790843300";code="any-6-digits"} | ConvertTo-Json
 $response = Invoke-RestMethod -Uri "https://your-api.vercel.app/auth/verify-otp" -Method Post -Body $body -ContentType "application/json"
 $token = $response.accessToken
 
@@ -35,7 +35,7 @@ $otps.otps | Format-Table phone, otp, ttl
 
 | Role | Phone | Notes |
 |------|-------|-------|
-| Admin | +254700000000 | Full access + OTP endpoint |
+| Admin | +254790843300 | Full access + OTP endpoint |
 | Owner | +254723456789 | Vehicle management |
 | Renter | +254712345678 | Browse & book |
 

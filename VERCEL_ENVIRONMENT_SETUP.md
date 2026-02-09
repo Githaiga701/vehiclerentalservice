@@ -40,7 +40,7 @@ After saving:
 Once redeployed:
 1. Go to your Vercel app URL
 2. Navigate to `/login`
-3. Enter phone: `+254700000000`
+3. Enter phone: `+254790843300`
 4. Click "Request OTP"
 5. Check Render logs for the OTP code
 
@@ -74,7 +74,7 @@ Since you can't see console logs in production, you have 3 options:
 2. Click your API service
 3. Click **Logs** tab
 4. Request OTP from your app
-5. Look for: `[AuthService] OTP for +254700000000: 123456`
+5. Look for: `[AuthService] OTP for +254790843300: 123456`
 
 ### Option 2: Setup Redis + Admin Endpoint
 
@@ -174,7 +174,7 @@ curl https://vehiclerentalservice.onrender.com/health
 ```bash
 curl -X POST https://vehiclerentalservice.onrender.com/auth/request-otp \
   -H "Content-Type: application/json" \
-  -d '{"phone":"+254700000000"}'
+  -d '{"phone":"+254790843300"}'
 ```
 
 ### Get OTPs (Admin)

@@ -112,9 +112,9 @@ Without Twilio configured:
 # OTP will be logged to console
 curl -X POST http://localhost:3001/auth/request-otp \
   -H "Content-Type: application/json" \
-  -d '{"phone":"+254700000000"}'
+  -d '{"phone":"+254790843300"}'
 
-# Check logs for: [AuthService] OTP for +254700000000: 123456
+# Check logs for: [AuthService] OTP for +254790843300: 123456
 ```
 
 With Twilio configured:
@@ -122,7 +122,7 @@ With Twilio configured:
 # OTP will be sent to WhatsApp
 curl -X POST http://localhost:3001/auth/request-otp \
   -H "Content-Type: application/json" \
-  -d '{"phone":"+254700000000"}'
+  -d '{"phone":"+254790843300"}'
 
 # Check WhatsApp for the message
 ```
@@ -152,7 +152,7 @@ curl -X POST http://localhost:3001/auth/request-otp \
 **Solution**:
 - Verify credentials in Twilio console
 - Join sandbox: Send "join [code]" to Twilio WhatsApp number
-- Use format: +254700000000 (with + and country code)
+- Use format: +254790843300 (with + and country code)
 
 ### Issue 3: "Twilio not installed"
 
@@ -167,11 +167,11 @@ pnpm add twilio
 ## Phone Number Format
 
 ✅ Correct formats:
-- `+254700000000`
+- `+254790843300`
 - `+254712345678`
 
 ❌ Wrong formats:
-- `0700000000` (missing country code)
+- `0790843300` (missing country code)
 - `254700000000` (missing +)
 - `+254 700 000 000` (spaces not allowed)
 

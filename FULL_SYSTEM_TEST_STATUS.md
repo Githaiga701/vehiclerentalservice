@@ -125,7 +125,7 @@ Invoke-RestMethod -Uri "http://localhost:3001/health"
 $body = @{
   name="Test User"
   email="test@example.com"
-  phone="+254700000000"
+  phone="+254790843300"
   subject="Test Message"
   message="This is a test message."
 } | ConvertTo-Json

@@ -9,20 +9,20 @@
 ## Test Accounts
 | Phone | Role | Use For |
 |-------|------|---------|
-| +254700000000 | ADMIN | Vehicle approval testing |
+| +254790843300 | ADMIN | Vehicle approval testing |
 | +254723456789 | OWNER | Owner dashboard testing |
 | +254712345678 | RENTER | Booking testing |
 
 ## OTP
 Check server logs for OTP. Look for:
 ```
-LOG [AuthService] OTP for +254700000000: 499160
+LOG [AuthService] OTP for +254790843300: 499160
 ```
 
 ## Priority Test: Vehicle Approval ⭐
 
 1. Go to: http://localhost:3000/login
-2. Phone: `+254700000000`
+2. Phone: `+254790843300`
 3. Get OTP from server logs
 4. Login → Admin Dashboard → Manage Vehicles
 5. **Should see:** 5 pending vehicles

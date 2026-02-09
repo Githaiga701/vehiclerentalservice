@@ -32,7 +32,7 @@ async function main() {
     {
       name: 'Admin User',
       email: 'admin@vehiclerent.ke',
-      phone: '+254700000000',
+      phone: '+254790843300',
       role: 'ADMIN',
       password: await bcrypt.hash('admin123', 10),
     },
@@ -170,7 +170,7 @@ async function main() {
   console.log('\n📋 Test Accounts:');
   console.log('👤 Regular User: +254712345678 (OTP: any 6 digits)');
   console.log('🏠 Owner: +254723456789 (OTP: any 6 digits)');
-  console.log('👨‍💼 Admin: +254700000000 (OTP: any 6 digits)');
+  console.log('👨‍💼 Admin: +254790843300 (OTP: any 6 digits)');
   console.log('\n💡 For OTP login, check the server console for the generated OTP code');
 }
 

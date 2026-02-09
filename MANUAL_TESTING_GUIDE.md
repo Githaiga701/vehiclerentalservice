@@ -11,7 +11,7 @@
 ### Test Accounts:
 | Role | Phone | OTP |
 |------|-------|-----|
-| Admin | +254700000000 | Check server logs |
+| Admin | +254790843300 | Check server logs |
 | Owner | +254723456789 | Check server logs |
 | Renter | +254712345678 | Check server logs |
 
@@ -23,7 +23,7 @@
 
 **Steps:**
 1. Open http://localhost:3000/login
-2. Enter phone: `+254700000000`
+2. Enter phone: `+254790843300`
 3. Click "Request OTP"
 4. Check API server logs for OTP (or use: 499160 if still valid)
 5. Enter OTP and login
@@ -236,7 +236,7 @@
 **In your terminal/console:**
 Look for lines like:
 ```
-[Nest] 18400  - 02/07/2026, 4:44:15 PM     LOG [AuthService] OTP for +254700000000: 499160
+[Nest] 18400  - 02/07/2026, 4:44:15 PM     LOG [AuthService] OTP for +254790843300: 499160
 ```
 
 The 6-digit number is your OTP.

@@ -86,7 +86,7 @@ OTP sent successfully       300
 
 **Command**:
 ```powershell
-$body = @{phone="+254700000000"} | ConvertTo-Json
+$body = @{phone="+254790843300"} | ConvertTo-Json
 Invoke-RestMethod -Uri "http://localhost:3001/auth/request-otp" -Method Post -Body $body -ContentType "application/json"
 ```
 
@@ -100,14 +100,14 @@ OTP sent successfully       300
 **Server Log**:
 ```
 [AuthService] OTP stored in database for user cmlc90msz000b8geouulrn3juo
-[AuthService] OTP for +254700000000: 967468
+[AuthService] OTP for +254790843300: 967468
 ```
 
 ### Test 3: OTP Verification ✅
 
 **Command**:
 ```powershell
-$body = @{phone="+254700000000";code="967468"} | ConvertTo-Json
+$body = @{phone="+254790843300";code="967468"} | ConvertTo-Json
 $response = Invoke-RestMethod -Uri "http://localhost:3001/auth/verify-otp" -Method Post -Body $body -ContentType "application/json"
 ```
 
@@ -161,7 +161,7 @@ All endpoints successfully registered:
 ## Test Accounts
 
 ### Admin Account
-- **Phone**: +254700000000
+- **Phone**: +254790843300
 - **Role**: ADMIN
 - **Access**: Full admin panel + OTP endpoint
 
@@ -200,11 +200,11 @@ git push
 
 ```powershell
 # 1. Request OTP
-$body = @{phone="+254700000000"} | ConvertTo-Json
+$body = @{phone="+254790843300"} | ConvertTo-Json
 Invoke-RestMethod -Uri "https://your-api.vercel.app/auth/request-otp" -Method Post -Body $body -ContentType "application/json"
 
 # 2. Login as admin (use any 6-digit code for first login)
-$body = @{phone="+254700000000";code="123456"} | ConvertTo-Json
+$body = @{phone="+254790843300";code="123456"} | ConvertTo-Json
 $response = Invoke-RestMethod -Uri "https://your-api.vercel.app/auth/verify-otp" -Method Post -Body $body -ContentType "application/json"
 $token = $response.accessToken
 

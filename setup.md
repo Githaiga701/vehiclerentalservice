@@ -61,7 +61,7 @@ After running the seed script, you can login with these test accounts:
 - **KYC Status**: Approved
 
 ### Admin User
-- **Phone**: `+254700000000` or `0700000000`
+- **Phone**: `+254790843300` or `0790843300`
 - **OTP**: Any 6-digit number (e.g., `123456`)
 - **Name**: Admin User
 - **KYC Status**: Approved
