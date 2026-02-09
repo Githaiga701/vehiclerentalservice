@@ -144,7 +144,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const isAuthenticated = !!user;
   const isKycApproved = user?.kycStatus === "APPROVED";
-  const requiresKyc = isAuthenticated && !isKycApproved;
+  // Require KYC only for RENTERS who don't have APPROVED KYC
+  // ADMIN and OWNER don't need KYC to use the platform
+  const requiresKyc = isAuthenticated && 
+    user?.role === "RENTER" && 
+    !isKycApproved;
   const isAdmin = user?.role === "ADMIN";
   const isOwner = user?.role === "OWNER";
 
