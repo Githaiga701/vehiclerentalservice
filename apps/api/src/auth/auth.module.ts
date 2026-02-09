@@ -11,6 +11,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { DatabaseModule } from '../database/database.module';
+import { WhatsAppService } from '../services/whatsapp.service';
 
 @Module({
   imports: [
@@ -53,7 +54,7 @@ import { DatabaseModule } from '../database/database.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, JwtAuthGuard, RolesGuard],
+  providers: [AuthService, JwtStrategy, JwtAuthGuard, RolesGuard, WhatsAppService],
   exports: [AuthService, JwtStrategy, PassportModule, JwtAuthGuard, RolesGuard],
 })
 export class AuthModule {}

@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../database/prisma.service';
 import { RedisService } from '../database/redis.service';
+import { WhatsAppService } from '../services/whatsapp.service';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly redisService: RedisService,
+    private readonly whatsappService: WhatsAppService,
   ) {}
 
   async requestOtp(phone: string): Promise<{ message: string; expiresIn: number }> {
@@ -59,8 +61,13 @@ export class AuthService {
       await this.storeOtpInDatabase(user.id, otpCode, expiresInSeconds);
     }
 
-    // In production, send OTP via SMS (Twilio, Africa's Talking, etc.)
-    this.logger.log(`OTP for ${normalizedPhone}: ${otpCode}`);
+    // In production, send OTP via WhatsApp or SMS
+    if (this.whatsappService.isConfigured()) {
+      await this.whatsappService.sendOTP(normalizedPhone, otpCode);
+      this.logger.log(`WhatsApp OTP sent to ${normalizedPhone}`);
+    } else {
+      this.logger.log(`OTP for ${normalizedPhone}: ${otpCode}`);
+    }
 
     return {
       message: 'OTP sent successfully',
