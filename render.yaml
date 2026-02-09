@@ -9,7 +9,7 @@ services:
       cd apps/api && \
       pnpm install && \
       pnpm prisma generate && \
-      pnpm prisma migrate deploy && \
+      pnpm prisma db push --accept-data-loss --skip-generate && \
       pnpm build
     startCommand: cd apps/api && node start.js
     healthCheckPath: /health
