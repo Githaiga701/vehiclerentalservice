@@ -8,8 +8,7 @@ services:
     buildCommand: |
       cd apps/api && \
       pnpm install && \
-      chmod +x setup-db.sh && \
-      ./setup-db.sh && \
+      node setup-db.js && \
       pnpm build
     startCommand: cd apps/api && node start.js
     healthCheckPath: /health
