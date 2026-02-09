@@ -352,7 +352,7 @@ export default function Home() {
                 className="w-full h-16 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-lg font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group"
               >
                 <Link 
-                  href="/explore"
+                  href="/vehicles"
                   onClick={() => trackBusinessEvents.ctaClick('Find Vehicle', 'Hero Search')}
                 >
                   <Search className="mr-3 h-6 w-6" /> 
