@@ -52,8 +52,14 @@ export default function RegisterPage() {
       return;
     }
 
-    setIsLoading(true);
+    // Validate phone number format
     const normalizedPhone = normalizePhone(phone);
+    if (!normalizedPhone.match(/^(\+254|254|0)(7[0-9]|1[0-9]|8[0-9]|9[0-9])\d{7}$/)) {
+      setError("Please enter a valid Kenyan phone number (e.g., 0712345678, 0812345678, or +254712345678)");
+      return;
+    }
+
+    setIsLoading(true);
     
     const success = await requestOtp(normalizedPhone);
     if (success) {

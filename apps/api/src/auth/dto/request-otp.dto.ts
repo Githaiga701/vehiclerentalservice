@@ -5,8 +5,8 @@ export class RequestOtpDto {
   @IsString()
   @MinLength(10)
   @MaxLength(15)
-  @Matches(/^(\+254|254|0)[17]\d{8}$/, {
-    message: 'Phone number must be a valid Kenyan phone number'
+  @Matches(/^(\+254|254|0)(7[0-9]|1[0-9]|8[0-9]|9[0-9])\d{7}$/, {
+    message: 'Phone number must be a valid Kenyan phone number (e.g., 0712345678 or +254712345678)'
   })
   phone!: string;
 }
