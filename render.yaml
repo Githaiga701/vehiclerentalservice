@@ -6,9 +6,10 @@ services:
     plan: free
     region: oregon
     buildCommand: |
-      cd apps/api && \
       pnpm install && \
+      cd apps/api && \
       node setup-db.js && \
+      cd ../.. && \
       pnpm build
     startCommand: cd apps/api && node start.js
     healthCheckPath: /health
